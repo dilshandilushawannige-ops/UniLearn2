@@ -10,7 +10,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const redirectPath = location.state?.from?.pathname || '/dashboard';
+  const redirectPath = location.state?.from?.pathname || '/user-dashboard';
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
