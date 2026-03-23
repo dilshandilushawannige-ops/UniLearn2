@@ -3,6 +3,19 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import '../styles/UserDashboard.css';
 
+// Import all PNG icons from assets folder
+import dashboardIcon from '../assets/dashboard-icon.png';
+import resourcesIcon from '../assets/resources-icon.png';
+import uploadIcon from '../assets/upload-icon.png';
+import studyPlanIcon from '../assets/study-plan-icon.png';
+import liveClassIcon from '../assets/live-class-icon.png';
+import mcqIcon from '../assets/mcq-icon.png';
+import requestsIcon from '../assets/requests-icon.png';
+
+// Topbar PNG icons
+import searchIcon from '../assets/search-icon.png';
+import notificationIcon from '../assets/notification-icon.png';
+
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -27,31 +40,31 @@ const DashboardLayout = () => {
         
         <nav className="sidebar-nav">
           <Link to="/user-dashboard" className={`nav-item ${isActive('/user-dashboard') ? 'active' : ''}`}>
-            <span className="nav-icon">📊</span>
+            <img src={dashboardIcon} alt="Dashboard" className="nav-icon-img" />
             Dashboard
           </Link>
           <Link to="/user-dashboard/resources" className={`nav-item ${isActive('/user-dashboard/resources') ? 'active' : ''}`}>
-            <span className="nav-icon">📚</span>
+            <img src={resourcesIcon} alt="Resources" className="nav-icon-img" />
             Resources
           </Link>
           <Link to="/user-dashboard/upload" className={`nav-item ${isActive('/user-dashboard/upload') ? 'active' : ''}`}>
-            <span className="nav-icon">📤</span>
+            <img src={uploadIcon} alt="Upload" className="nav-icon-img" />
             Upload Resource
           </Link>
           <Link to="/user-dashboard/study-plans" className={`nav-item ${isActive('/user-dashboard/study-plans') ? 'active' : ''}`}>
-            <span className="nav-icon">📅</span>
+            <img src={studyPlanIcon} alt="Study Plans" className="nav-icon-img" />
             Study Plans
           </Link>
           <Link to="/user-dashboard/live-class" className={`nav-item ${isActive('/user-dashboard/live-class') ? 'active' : ''}`}>
-            <span className="nav-icon">🎓</span>
+            <img src={liveClassIcon} alt="Live Class" className="nav-icon-img" />
             Live Class
           </Link>
           <Link to="/user-dashboard/mcq" className={`nav-item ${isActive('/user-dashboard/mcq') ? 'active' : ''}`}>
-            <span className="nav-icon">✅</span>
+            <img src={mcqIcon} alt="MCQ Practice" className="nav-icon-img" />
             MCQ Practice
           </Link>
           <Link to="/user-dashboard/requests" className={`nav-item ${isActive('/user-dashboard/requests') ? 'active' : ''}`}>
-            <span className="nav-icon">📝</span>
+            <img src={requestsIcon} alt="Requests" className="nav-icon-img" />
             Requests
           </Link>
         </nav>
@@ -93,18 +106,20 @@ const DashboardLayout = () => {
         {/* Top Bar */}
         <header className="dashboard-header">
           <div className="search-bar">
-            <span className="search-icon">🔍</span>
+            <img src={searchIcon} alt="Search" className="search-icon-img" />
             <input type="text" placeholder="Search resources, modules..." />
           </div>
           <div className="header-actions">
             <Link to="/user-dashboard/resources" className="header-link">Archive</Link>
             <Link to="/user-dashboard/live-class" className="header-link">Community</Link>
-            <button className="notification-btn">🔔</button>
+            <button className="notification-btn">
+              <img src={notificationIcon} alt="Notifications" className="notification-icon-img" />
+            </button>
           </div>
         </header>
 
         {/* Dynamic Content Area */}
-        <div className="dashboard-content">
+        <div key={location.pathname} className="dashboard-content fade-in-up">
           <Outlet />
         </div>
 

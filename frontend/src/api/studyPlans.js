@@ -17,4 +17,8 @@ export const studyPlansAPI = {
     const { data } = await api.patch(`/studyplans/${id}/progress`, payload);
     return data;
   },
+  delete: async (id) => {
+    const { data } = await api.delete(`/studyplans/${id}`);
+    return data;
+  },
 };

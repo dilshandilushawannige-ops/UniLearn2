@@ -136,4 +136,17 @@ const updateProgress = async (req, res) => {
   }
 };
 
-module.exports = { generatePlan, getStudyPlans, getStudyPlanById, updateProgress };
+// @desc  Delete a study plan
+// @route DELETE /api/studyplans/:id
+// @access Private
+const deletePlan = async (req, res) => {
+  try {
+    const plan = await StudyPlan.findOneAndDelete({ _id: req.params.id, user: req.user._id });
+    if (!plan) return res.status(404).json({ message: 'Study plan not found' });
+    res.json({ message: 'Study plan deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { generatePlan, getStudyPlans, getStudyPlanById, updateProgress, deletePlan };
