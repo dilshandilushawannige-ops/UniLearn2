@@ -1,8 +1,12 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import SignupModal from './SignupModal';
+import LoginModal from './LoginModal';
 
 const Navbar = () => {
   const location = useLocation();
+  const [showSignupModal, setShowSignupModal] = React.useState(false);
+  const [showLoginModal, setShowLoginModal] = React.useState(false);
   const isDashboard = location.pathname === '/dashboard' || location.pathname === '/';
 
   // Show different navbar for dashboard vs other pages
@@ -19,10 +23,24 @@ const Navbar = () => {
           </nav>
 
           <div className="nav-actions">
-            <NavLink to="/login" className="btn-login">Login</NavLink>
-            <NavLink to="/signup" className="btn-get-started">Get Started</NavLink>
+            <button 
+              onClick={() => setShowLoginModal(true)} 
+              className="btn-login"
+              style={{border: 'none', background: 'transparent', fontFamily: 'inherit', cursor: 'pointer', outline: 'none', padding: 0}}
+            >
+              Login
+            </button>
+            <button 
+              onClick={() => setShowSignupModal(true)} 
+              className="btn-get-started"
+              style={{border: 'none', fontFamily: 'inherit', cursor: 'pointer', outline: 'none'}}
+            >
+              Get Started
+            </button>
           </div>
         </div>
+        {showSignupModal && <SignupModal onClose={() => setShowSignupModal(false)} />}
+        {showLoginModal && <LoginModal onClose={() => setShowLoginModal(false)} onSwitchToSignup={() => { setShowLoginModal(false); setShowSignupModal(true); }} />}
       </header>
     );
   }
