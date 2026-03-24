@@ -21,7 +21,7 @@ const DashboardResources = () => {
   const [listError, setListError] = useState('');
 
   useEffect(() => {
-    modulesAPI.getModules({ year: filterYear, semester: filterSem }).then(setModules).catch(() => {});
+    modulesAPI.getModules({ year: filterYear, semester: filterSem }).then(setModules).catch(() => { });
   }, [filterYear, filterSem]);
 
   const fetchResources = useCallback(async () => {
@@ -51,7 +51,7 @@ const DashboardResources = () => {
         <div className="form-group">
           <label>Year</label>
           <select value={filterYear} onChange={e => { setFilterYear(Number(e.target.value)); setFilterModule(''); }}>
-            {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
+            {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
           </select>
         </div>
         <div className="form-group">
@@ -83,33 +83,40 @@ const DashboardResources = () => {
       {!listLoading && resources.length === 0 && (
         <p style={{ color: '#6b7280' }}>No resources found. Upload the first one!</p>
       )}
-      {!listLoading && resources.map(r => (
-        <div key={r._id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-          <div>
-            <div style={{ marginBottom: '0.3rem' }}>
-              <span className={`resource-tag ${r.resourceType}`}>{r.resourceType}</span>
-              <strong>{r.title}</strong>
-              {r.lectureNo && <span style={{ color: '#6b7280', fontSize:'0.85rem', marginLeft:'0.5rem' }}>Lecture {r.lectureNo}</span>}
+      <div className="resources-grid">
+        {!listLoading && resources.map(r => (
+          <div key={r._id} className={`resource-card ${r.resourceType}`}>
+            <div className="resource-banner">
+              <span className="resource-type-label">{r.resourceType.replace('_', ' ').toUpperCase()}</span>
             </div>
-            <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
-              {r.moduleCode} · Year {r.year} Sem {r.semester} · by {r.uploader?.username || 'Unknown'}
+            <div className="resource-content">
+              <div className="resource-header">
+                <h3 className="resource-title">{r.title}</h3>
+                {r.lectureNo && <span className="resource-lecture-badge">Lecture {r.lectureNo}</span>}
+              </div>
+              <p className="resource-meta">
+                {r.moduleCode} · Year {r.year} Sem {r.semester}
+              </p>
+              <p className="resource-uploader">
+                Uploaded by <strong>{r.uploader?.username || 'Unknown'}</strong>
+              </p>
+              {r.lectureTitle && <p className="resource-lecture-title">{r.lectureTitle}</p>}
             </div>
-            {r.lectureTitle && <div style={{ fontSize: '0.85rem', color: '#374151', marginTop: '0.2rem' }}>{r.lectureTitle}</div>}
+            <div className="resource-actions">
+              {r.fileUrl && (
+                <a href={r.fileUrl} target="_blank" rel="noreferrer" className="btn btn-primary btn-block">
+                  View File
+                </a>
+              )}
+              {r.ytLink && (
+                <a href={r.ytLink} target="_blank" rel="noreferrer" className="btn btn-danger btn-block">
+                  Watch Video
+                </a>
+              )}
+            </div>
           </div>
-          <div style={{ flexShrink: 0, marginLeft: '1rem' }}>
-            {r.fileUrl && (
-              <a href={r.fileUrl} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
-                View File
-              </a>
-            )}
-            {r.ytLink && (
-              <a href={r.ytLink} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm">
-                Watch
-              </a>
-            )}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
