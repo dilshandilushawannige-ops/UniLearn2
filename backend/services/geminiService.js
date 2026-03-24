@@ -190,7 +190,7 @@ Return a single JSON object with this exact structure (no extra text, no markdow
     {
       "day": 1,
       "date": "${today}",
-      "focus": "what lectures/topics are covered today",
+      "focus": "Strictly specify which lecture numbers (e.g. 'Lecture 1, 2') are covered today along with the main topic",
       "topics": ["topic from lecture content"],
       "activities": ["activity based on lecture content"],
       "estimatedHours": 2
@@ -274,4 +274,48 @@ INSTRUCTIONS:
   return callAI(prompt);
 };
 
-module.exports = { generateStudyPlan, generateMCQs };
+// ─── DAY SUMMARY GENERATION ──────────────────────────────────────────────────
+
+/**
+ * Generate an exam-revision summary for a specific study day.
+ *
+ * @param {string} moduleCode
+ * @param {number} dayNumber
+ * @param {Array<{lectureNo: number, title: string, contentText: string, topics: string[]}>} assignedContent
+ * @returns {Promise<{summaryText: string}>}
+ */
+const generateDaySummary = async (moduleCode, dayNumber, assignedContent) => {
+  const contentBlock = assignedContent
+    .map((c) => {
+      const text = (c.contentText || '').slice(0, 4000) || '[No extracted text]';
+      const topicsStr = (c.topics || []).join(', ') || 'N/A';
+      return `=== LECTURE ${c.lectureNo}${c.title ? ': ' + c.title : ''} ===\nKey Topics: ${topicsStr}\n${text}`;
+    })
+    .join('\n\n');
+
+  const prompt = `You are an expert academic revision assistant. Generate a concise, exam-focused revision summary for Day ${dayNumber} of the module "${moduleCode}" study plan.
+
+USE ONLY the following lecture content assigned to Day ${dayNumber}. Do NOT reference other days or outside knowledge.
+
+DAY ${dayNumber} ASSIGNED CONTENT:
+---
+${contentBlock}
+---
+
+INSTRUCTIONS:
+1. Write a structured, concise revision summary (300-500 words).
+2. Highlight key concepts, definitions, and important points from the content.
+3. Use clear headings and bullet points where helpful.
+4. Make it exam-friendly — prioritize what's most likely to be tested.
+5. End with a 3-5 bullet "Key Takeaways" section.
+6. Respond with ONLY valid JSON:
+
+{
+  "summaryText": "Your full formatted revision summary here..."
+}`;
+
+  return callAI(prompt);
+};
+
+module.exports = { generateStudyPlan, generateMCQs, generateDaySummary };
+
