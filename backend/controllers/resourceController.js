@@ -27,6 +27,20 @@ const createResource = async (req, res) => {
       return res.status(400).json({ message: 'lectureNo is required for lecture_pdf' });
     }
 
+    // Check for duplicate resource
+    const existingResource = await Resource.findOne({
+      title: title.trim(),
+      moduleCode: moduleCode.toUpperCase(),
+      resourceType: resourceType,
+    });
+
+    if (existingResource) {
+      return res.status(409).json({
+        message: 'Duplication detected: A resource with the same Title, Module Code, and Resource Type already exists.',
+        isDuplicate: true
+      });
+    }
+
     let fileUrl = '';
     let filePublicId = '';
     let extractedText = '';
