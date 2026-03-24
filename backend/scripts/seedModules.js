@@ -7,14 +7,16 @@ const Module = require('../models/Module');
 const modules = [
   // ── Year 1, Semester 1 ──────────────────────────────────────────────────────
   { year: 1, semester: 1, moduleCode: 'IT1010', moduleName: 'Introduction to Programming' },
-  { year: 1, semester: 1, moduleCode: 'IT1020', moduleName: 'Mathematics for Computing' },
-  { year: 1, semester: 1, moduleCode: 'IT1030', moduleName: 'Computer Organisation & Architecture' },
-  { year: 1, semester: 1, moduleCode: 'IT1040', moduleName: 'Communication Skills for IT' },
+  { year: 1, semester: 1, moduleCode: 'IT1020', moduleName: 'Introduction to Computer Systems' },
+  { year: 1, semester: 1, moduleCode: 'IT1030', moduleName: 'Mathematics for Computing' },
+  { year: 1, semester: 1, moduleCode: 'IT1040', moduleName: 'Communication Skills' },
 
   // ── Year 1, Semester 2 ──────────────────────────────────────────────────────
-  { year: 1, semester: 2, moduleCode: 'IT1050', moduleName: 'Object-Oriented Programming' },
-  { year: 1, semester: 2, moduleCode: 'IT1060', moduleName: 'Discrete Mathematics' },
-  { year: 1, semester: 2, moduleCode: 'IT1070', moduleName: 'Web Fundamentals' },
+  { year: 1, semester: 2, moduleCode: 'IT1050', moduleName: 'Object Oriented Concepts' },
+  { year: 1, semester: 2, moduleCode: 'IT1060', moduleName: 'Software Process Modeling' },
+  { year: 1, semester: 2, moduleCode: 'IT1080', moduleName: 'English for Academic Purposes' },
+  { year: 1, semester: 2, moduleCode: 'IT1090', moduleName: 'Information Systems & Data Modeling' },
+  { year: 1, semester: 2, moduleCode: 'IT1100', moduleName: 'Internet & Web Technologies' },
 
   // ── Year 2, Semester 1 ──────────────────────────────────────────────────────
   { year: 2, semester: 1, moduleCode: 'IT2010', moduleName: 'Data Structures & Algorithms' },

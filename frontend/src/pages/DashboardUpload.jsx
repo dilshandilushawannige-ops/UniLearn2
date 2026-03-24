@@ -31,7 +31,7 @@ const DashboardUpload = () => {
     modulesAPI
       .getModules({ year: form.year, semester: form.semester })
       .then(setModules)
-      .catch(() => {});
+      .catch(() => { });
   }, [form.year, form.semester]);
 
   const handleUpload = async (e) => {
@@ -65,7 +65,7 @@ const DashboardUpload = () => {
         ytLink: '',
       });
       setFile(null);
-      
+
       // Reset file input
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) fileInput.value = '';
@@ -76,6 +76,29 @@ const DashboardUpload = () => {
       }, 2000);
     } catch (err) {
       setUploadError(err.message);
+
+      // If duplicate detected, auto-reset form for re-entry
+      if (err.message && err.message.includes('Duplication detected')) {
+        setTimeout(() => {
+          setForm({
+            title: '',
+            year: user?.currentYear || 1,
+            semester: user?.currentSemester || 1,
+            moduleCode: '',
+            resourceType: 'lecture_pdf',
+            lectureNo: '',
+            lectureTitle: '',
+            ytLink: '',
+          });
+          setFile(null);
+
+          // Reset file input
+          const fileInput = document.querySelector('input[type="file"]');
+          if (fileInput) fileInput.value = '';
+
+          setUploadError('');
+        }, 3000);
+      }
     } finally {
       setUploading(false);
     }
