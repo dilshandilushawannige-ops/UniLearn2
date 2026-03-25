@@ -134,7 +134,7 @@ const rateResource = async (req, res) => {
 
     // Check if user already rated
     const existingRatingIndex = resource.ratings.findIndex(
-      (r) => r.user.toString() === req.user.userId.toString()
+      (r) => r.user && r.user.toString() === req.user._id.toString()
     );
 
     if (existingRatingIndex >= 0) {
@@ -143,7 +143,7 @@ const rateResource = async (req, res) => {
     } else {
       // Add new rating
       resource.ratings.push({
-        user: req.user.userId,
+        user: req.user._id,
         rating: Number(rating)
       });
     }

@@ -14,6 +14,7 @@ import DashboardUpload from './pages/DashboardUpload';
 import DashboardStudyPlan from './pages/DashboardStudyPlan';
 import Resources from './pages/Resources';
 import ResourceRequest from './pages/ResourceRequest';
+import ResourceDetails from './pages/ResourceDetails';
 import LiveClass from './pages/LiveClass';
 import StudyPlan from './pages/StudyPlan';
 import MCQ from './pages/MCQ';
@@ -29,11 +30,12 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<Dashboard />} />
-        
+
         {/* User Dashboard with nested routes */}
         <Route path="/user-dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<DashboardHome />} />
           <Route path="resources" element={<DashboardResources />} />
+          <Route path="resources/:id" element={<ResourceDetails />} />
           <Route path="upload" element={<DashboardUpload />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
           <Route path="requests" element={<ResourceRequest />} />
