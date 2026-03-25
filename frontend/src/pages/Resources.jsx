@@ -22,6 +22,35 @@ const Resources = () => {
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState('');
 
+  // Rating state
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+  const [ratingResource, setRatingResource] = useState(null);
+  const [currentRating, setCurrentRating] = useState(0);
+  const [submittingRating, setSubmittingRating] = useState(false);
+
+  const handleRateResource = async () => {
+    if (!ratingResource || currentRating === 0) return;
+    setSubmittingRating(true);
+    try {
+      const res = await resourcesAPI.rateResource(ratingResource._id, currentRating);
+      setResources(prev => prev.map(r => {
+        if (r._id === ratingResource._id) {
+          return { ...r, averageRating: res.averageRating, ratingCount: res.ratingCount };
+        }
+        return r;
+      }));
+      setRatingModalOpen(false);
+      setRatingResource(null);
+      setCurrentRating(0);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit rating. Please try again.');
+    } finally {
+      setSubmittingRating(false);
+    }
+  };
+
+
   // ── Upload form state ──────────────────────────────────────────────────────
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
@@ -92,7 +121,10 @@ const Resources = () => {
   return (
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-        <h1 className="page-title" style={{ marginBottom: 0 }}>📂 Learning Resources</h1>
+        <div>
+        <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#1a1f36', marginBottom: '0.25rem' }}>Learning Resources</h1>
+        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0, marginBottom: '2.5rem' }}>Manage and discover {resources.length} curated academic materials.</p>
+      </div>
         <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Hide Form' : '+ Upload Resource'}
         </button>
@@ -234,6 +266,36 @@ const Resources = () => {
           </div>
         </div>
       ))}
+
+      {ratingModalOpen && (
+        <div className="rating-modal-overlay" onClick={() => setRatingModalOpen(false)}>
+          <div className="rating-modal-content" onClick={e => e.stopPropagation()}>
+            <button className="rating-modal-close" onClick={() => setRatingModalOpen(false)}>&times;</button>
+            <h2 className="rating-modal-title">Rate Resource</h2>
+            <p className="rating-modal-subtitle">{ratingResource?.title}</p>
+
+            <p style={{ fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem' }}>Tap to Rate</p>
+            <div className="rating-modal-stars">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <svg key={star} onClick={() => setCurrentRating(star)} fill={star <= currentRating ? "#0284c7" : "#e2e8f0"} viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              ))}
+            </div>
+
+            <div className="rating-modal-value">
+              {currentRating > 0 ? `${currentRating}.0 / 5.0` : '0.0 / 5.0'}
+            </div>
+
+            <button
+              className="rating-modal-submit"
+              onClick={handleRateResource}
+              disabled={currentRating === 0 || submittingRating}
+            >
+              {submittingRating ? 'Submitting...' : 'Submit Rating'}
+            </button>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

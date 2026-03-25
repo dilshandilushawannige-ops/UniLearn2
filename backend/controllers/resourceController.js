@@ -119,4 +119,49 @@ const getResourceById = async (req, res) => {
   }
 };
 
-module.exports = { createResource, getResources, getResourceById };
+// @desc  Rate a resource
+// @route POST /api/resources/:id/rate
+// @access Private
+const rateResource = async (req, res) => {
+  try {
+    const { rating } = req.body;
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: 'Please provide a valid rating between 1 and 5' });
+    }
+
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+    // Check if user already rated
+    const existingRatingIndex = resource.ratings.findIndex(
+      (r) => r.user.toString() === req.user.userId.toString()
+    );
+
+    if (existingRatingIndex >= 0) {
+      // Update existing rating
+      resource.ratings[existingRatingIndex].rating = Number(rating);
+    } else {
+      // Add new rating
+      resource.ratings.push({
+        user: req.user.userId,
+        rating: Number(rating)
+      });
+    }
+
+    // Recalculate average
+    resource.ratingCount = resource.ratings.length;
+    const sum = resource.ratings.reduce((acc, curr) => acc + curr.rating, 0);
+    resource.averageRating = sum / resource.ratingCount;
+
+    await resource.save();
+    res.json({
+      averageRating: resource.averageRating,
+      ratingCount: resource.ratingCount,
+      message: 'Rating submitted successfully'
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createResource, getResources, getResourceById, rateResource };

@@ -18,6 +18,14 @@ const resourceSchema = new mongoose.Schema(
     filePublicId: { type: String, default: '' },
     extractedText: { type: String, default: '' },
     ytLink: { type: String, default: '' },
+    ratings: [
+      {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        rating: { type: Number, required: true, min: 1, max: 5 }
+      }
+    ],
+    averageRating: { type: Number, default: 0 },
+    ratingCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

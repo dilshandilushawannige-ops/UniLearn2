@@ -4,6 +4,7 @@ const {
   createResource,
   getResources,
   getResourceById,
+  rateResource,
 } = require('../controllers/resourceController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -16,5 +17,8 @@ router.get('/', getResources);
 
 // GET /api/resources/:id
 router.get('/:id', getResourceById);
+
+// POST /api/resources/:id/rate
+router.post('/:id/rate', protect, rateResource);
 
 module.exports = router;
