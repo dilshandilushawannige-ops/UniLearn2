@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { SocketProvider } from './context/SocketContext';
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -17,6 +18,9 @@ import ResourceRequest from './pages/ResourceRequest';
 import LiveClass from './pages/LiveClass';
 import StudyPlan from './pages/StudyPlan';
 import MCQ from './pages/MCQ';
+import GameDashboard from './pages/GameDashboard';
+import GameInvite from './pages/GameInvite';
+import QuizBattle from './pages/QuizBattle';
 
 const AppContent = () => {
   const location = useLocation();
@@ -39,6 +43,9 @@ const AppContent = () => {
           <Route path="requests" element={<ResourceRequest />} />
           <Route path="mcq" element={<MCQ />} />
           <Route path="live-class" element={<LiveClass />} />
+          <Route path="games" element={<GameDashboard />} />
+          <Route path="games/invite/:studentId" element={<GameInvite />} />
+          <Route path="games/battle/:battleId" element={<QuizBattle />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
@@ -79,9 +86,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <SocketProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </SocketProvider>
     </AuthProvider>
   );
 };
