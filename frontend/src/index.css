@@ -1229,66 +1229,58 @@ a:hover {
   box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
+
 .resource-banner {
-  height: 55px;
+  height: 140px;
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  padding: 0.75rem 1.25rem;
-  font-weight: bold;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
   color: white;
+  position: relative;
+}
+
+.resource-banner-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 0.5rem;
 }
 
 .resource-type-label {
   font-size: 0.75rem;
-  letter-spacing: 0.8px;
+  letter-spacing: 1px;
   font-weight: 700;
   text-transform: uppercase;
-  background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
-  padding: 0.35rem 0.8rem;
-  border-radius: 6px;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.resource-type-label:hover {
-  background: rgba(255, 255, 255, 0.35);
-  transform: translateY(-1px) scale(1.02);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .resource-card.lecture_pdf .resource-banner {
-  background-color: #3b82f6;
+  background-color: #0265d6;
 }
 
-/* Blue */
 .resource-card.short_note .resource-banner {
-  background-color: #10b981;
+  background-color: #1b6826;
 }
 
-/* Green */
 .resource-card.past_paper .resource-banner {
-  background-color: #8b5cf6;
+  background-color: #9d5000;
 }
 
-/* Purple */
 .resource-card.yt_link .resource-banner {
   background-color: #ef4444;
 }
 
-/* Red */
+/* User-friendly light red */
 .resource-card.other .resource-banner {
   background-color: #6b7280;
 }
 
-/* Gray */
-
 .resource-content {
   padding: 1.25rem;
   flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .resource-header {
@@ -1307,78 +1299,277 @@ a:hover {
 }
 
 .resource-lecture-badge {
-  display: inline-flex;
-  align-items: center;
-  background: #f1f5f9;
-  color: #475569;
-  padding: 0.25rem 0.6rem;
+  background: #e5e7eb;
+  color: #4b5563;
+  padding: 0.2rem 0.5rem;
   border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.65rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border: 1px solid #e2e8f0;
-  margin-left: 0.75rem;
-  vertical-align: middle;
-  transition: all 0.3s ease;
-}
-
-.resource-lecture-badge:hover {
-  background: #e2e8f0;
-  color: #1e293b;
-  transform: translateY(-1px);
+  margin-left: 0.5rem;
 }
 
 .resource-meta {
   font-size: 0.85rem;
   color: #6b7280;
-  margin-bottom: 0.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
-.resource-uploader {
-  font-size: 0.85rem;
-  color: #4b5563;
-  margin-bottom: 0.75rem;
+.resource-meta svg {
+  width: 14px;
+  height: 14px;
 }
 
-.resource-lecture-title {
-  font-size: 0.9rem;
-  color: #374151;
-  font-style: italic;
-  border-left: 2px solid #e5e7eb;
-  padding-left: 0.5rem;
-}
-
-.resource-actions {
-  padding: 1.25rem;
-  padding-top: 0;
+.resource-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
   margin-top: auto;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
 }
 
-.btn-block {
-  display: block;
-  width: 100%;
-  text-align: center;
-  padding: 0.6rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: opacity 0.2s;
+.uploader-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.btn-block:hover {
-  text-decoration: none;
+.uploader-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #1f2937;
   opacity: 0.9;
 }
 
-.btn-primary {
-  background: #4f46e5;
-  color: white;
-  border: none;
+.uploader-text {
+  display: flex;
+  flex-direction: column;
 }
 
-.btn-danger {
-  background: #ef4444;
+.uploaded-by-label {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  margin-bottom: 0.1rem;
+}
+
+.uploader-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.action-icons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.action-icon-btn {
+  color: #4b5563;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.action-icon-btn:hover {
+  color: #1f2937;
+}
+
+/* Modern Filter Bar Styling */
+.modern-filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  background: white;
+  padding: 1.25rem 1.75rem;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+  border: 1px solid #e5e7eb;
+}
+
+.modern-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 180px;
+  flex: 1;
+}
+
+.modern-filter-group label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.75px;
+}
+
+.modern-filter-group select {
+  appearance: none;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 0.65rem 2.5rem 0.65rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.modern-filter-group select:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.modern-filter-group select:focus {
+  outline: none;
+  border-color: #3882F6;
+  box-shadow: 0 0 0 3px rgba(56, 130, 246, 0.15);
+  background-color: #fff;
+}/* Rating Display on Card */
+.resource-rating-badge {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 1.25rem;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  z-index: 10;
+}
+
+.resource-rating-badge:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.resource-rating-star {
+  color: #fbbf24;
+  width: 14px;
+  height: 14px;
+}
+
+/* Rating Modal Options */
+.rating-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.rating-modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  padding: 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  text-align: center;
+}
+
+.rating-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #64748b;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+}
+
+.rating-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 0.25rem 0;
+}
+
+.rating-modal-subtitle {
+  font-size: 0.85rem;
+  color: #64748b;
+  margin-bottom: 2rem;
+}
+
+.rating-modal-stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.rating-modal-stars svg {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.rating-modal-stars svg:hover {
+  transform: scale(1.1);
+}
+
+.rating-modal-value {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #0369a1;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.rating-modal-submit {
+  width: 100%;
+  background: #0284c7;
   color: white;
   border: none;
+  padding: 0.875rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.rating-modal-submit:hover {
+  background: #0369a1;
+}
+
+.rating-modal-submit:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }

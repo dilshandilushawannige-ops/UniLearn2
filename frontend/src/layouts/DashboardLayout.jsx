@@ -21,6 +21,7 @@ const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const isActive = (path) => location.pathname === path;
 
@@ -37,7 +38,7 @@ const DashboardLayout = () => {
           <h2>UniLearnHub</h2>
           <p>Academic Editorial</p>
         </div>
-        
+
         <nav className="sidebar-nav">
           <Link to="/user-dashboard" className={`nav-item ${isActive('/user-dashboard') ? 'active' : ''}`}>
             <img src={dashboardIcon} alt="Dashboard" className="nav-icon-img" />
@@ -107,7 +108,12 @@ const DashboardLayout = () => {
         <header className="dashboard-header">
           <div className="search-bar">
             <img src={searchIcon} alt="Search" className="search-icon-img" />
-            <input type="text" placeholder="Search resources, modules..." />
+            <input
+              type="text"
+              placeholder="Search resources, modules..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
           <div className="header-actions">
             <Link to="/user-dashboard/resources" className="header-link">Archive</Link>
@@ -120,9 +126,7 @@ const DashboardLayout = () => {
 
         {/* Dynamic Content Area */}
         <div key={location.pathname} className="dashboard-content fade-in-up">
-          <Outlet />
-        </div>
-
+          <Outlet context={{ searchQuery }} />        </div>
         {/* Footer */}
         <footer className="dashboard-footer">
           <p>© 2024 UniLearnHub SLIIT. All rights reserved.</p>

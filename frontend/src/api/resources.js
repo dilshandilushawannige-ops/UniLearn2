@@ -16,4 +16,8 @@ export const resourcesAPI = {
     const { data } = await api.get(`/resources/${id}`);
     return data;
   },
+  rateResource: async (id, rating) => {
+    const { data } = await api.post(`/resources/${id}/rate`, { rating });
+    return data;
+  },
 };
