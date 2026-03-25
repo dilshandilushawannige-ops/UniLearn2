@@ -20,6 +20,7 @@
     "multer": "^2.0.2",
     "openai": "^6.22.0",
     "pdf-parse": "^1.1.1",
+    "socket.io": "^4.8.3",
     "streamifier": "^0.1.1"
   },
   "devDependencies": {
