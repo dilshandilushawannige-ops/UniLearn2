@@ -1188,6 +1188,7 @@ a:hover {
   .help-card:not(:nth-child(3n)) {
     border-right: 1px solid #e5e7eb;
   }
+
   .help-card:nth-child(1),
   .help-card:nth-child(2),
   .help-card:nth-child(3) {
@@ -1486,6 +1487,7 @@ a:hover {
     grid-template-columns: 1fr;
     gap: 3rem;
   }
+
   .footer-section {
     margin: 0 1rem 1rem 1rem;
     padding: 3rem 2rem;
@@ -1580,17 +1582,18 @@ a:hover {
 
 .resource-card {
   background: white;
-  border-radius: 12px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+
   display: flex;
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
+
 .resource-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+
 }
 
 
@@ -1805,7 +1808,9 @@ a:hover {
   border-color: #3882F6;
   box-shadow: 0 0 0 3px rgba(56, 130, 246, 0.15);
   background-color: #fff;
-}/* Rating Display on Card */
+}
+
+/* Rating Display on Card */
 .resource-rating-badge {
   position: absolute;
   bottom: 0.75rem;

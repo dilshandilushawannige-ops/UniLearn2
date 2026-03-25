@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSearchParams, useOutletContext } from 'react-router-dom';
+import { useSearchParams, useOutletContext, useNavigate } from 'react-router-dom';
 import { resourcesAPI } from '../api/resources';
 import { modulesAPI } from '../api/modules';
 import { useAuth } from '../context/AuthContext';
@@ -50,6 +50,7 @@ const getResourceIcon = (type) => {
 
 const DashboardResources = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const outletContext = useOutletContext();
   const searchQuery = outletContext?.searchQuery || '';
@@ -58,6 +59,7 @@ const DashboardResources = () => {
   const [filterSem, setFilterSem] = useState(user?.currentSemester || 1);
   const [filterModule, setFilterModule] = useState(searchParams.get('moduleCode') || '');
   const [filterType, setFilterType] = useState('');
+  const [sortBy, setSortBy] = useState('most_viewed');
 
   const [modules, setModules] = useState([]);
   const [resources, setResources] = useState([]);
@@ -156,7 +158,12 @@ const DashboardResources = () => {
     !searchQuery ||
     r.title.toLowerCase().startsWith(searchQuery.toLowerCase()) ||
     (r.moduleCode && r.moduleCode.toLowerCase().startsWith(searchQuery.toLowerCase()))
-  );
+  ).sort((a, b) => {
+    if (sortBy === 'highest_rated') return (b.averageRating || 0) - (a.averageRating || 0);
+    if (sortBy === 'most_downloaded') return (b.downloadCount || 0) - (a.downloadCount || 0);
+    if (sortBy === 'most_viewed') return (b.viewCount || 0) - (a.viewCount || 0);
+    return 0;
+  });
 
   return (
     <div>
@@ -222,6 +229,21 @@ const DashboardResources = () => {
           </span>
         </div>
 
+        {/* Sort By Dropdown */}
+        <div style={{ position: "relative", minWidth: "220px", maxWidth: "250px", flex: "1", marginLeft: "auto" }}>
+          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", pointerEvents: "none" }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+          </span>
+          <select style={{ width: "100%", appearance: "none", padding: "0.75rem 2.5rem 0.75rem 2.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#334155", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="most_viewed">Sort: Most Viewed</option>
+            <option value="highest_rated">Sort: Highest Rated</option>
+            <option value="most_downloaded">Sort: Most Downloaded</option>
+          </select>
+          <span style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </span>
+        </div>
+
       </div>
 
       {/* Resource List */}
@@ -276,12 +298,24 @@ const DashboardResources = () => {
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#64748b' }}>
-                  <a href={r.resourceType === 'yt_link' ? r.ytLink : r.fileUrl} target="_blank" rel="noreferrer" style={{ color: 'inherit', display: 'flex', alignItems: 'center', transition: 'color 0.2s', cursor: 'pointer' }} onMouseOver={e => e.currentTarget.style.color = '#0284c7'} onMouseOut={e => e.currentTarget.style.color = 'inherit'} title="View">
+                  <button
+                    onClick={() => {
+                      if (r.resourceType === 'yt_link') {
+                        window.open(r.ytLink, '_blank');
+                      } else {
+                        navigate(`/user-dashboard/resources/${r._id}`);
+                      }
+                    }}
+                    style={{ background: 'none', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', transition: 'color 0.2s', cursor: 'pointer', padding: 0 }}
+                    onMouseOver={e => e.currentTarget.style.color = '#0284c7'}
+                    onMouseOut={e => e.currentTarget.style.color = 'inherit'}
+                    title="View"
+                  >
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
-                  </a>
+                  </button>
 
                   {r.resourceType !== 'yt_link' && r.fileUrl && (
                     <a href={r.fileUrl} onClick={(e) => handleDownload(e, r)} style={{ color: 'inherit', display: 'flex', alignItems: 'center', transition: 'color 0.2s', cursor: 'pointer' }} onMouseOver={e => e.currentTarget.style.color = '#0284c7'} onMouseOut={e => e.currentTarget.style.color = 'inherit'} title="Download">
