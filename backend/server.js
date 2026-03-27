@@ -36,6 +36,8 @@ app.use('/api/resources', require('./routes/resources'));
 app.use('/api/studyplans', require('./routes/studyPlans'));
 app.use('/api/mcqs', require('./routes/mcqs'));
 app.use('/api/games', require('./routes/games'));
+app.use('/api/questions', require('./routes/questions'));
+app.use('/api/answers', require('./routes/answers'));
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => res.json({ status: 'OK', timestamp: new Date() }));

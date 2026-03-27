@@ -30,6 +30,19 @@ const GameIcon = () => (
   </div>
 );
 
+const QnaIcon = () => (
+  <div style={{
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '16px'
+  }}>
+    💬
+  </div>
+);
+
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
@@ -81,6 +94,14 @@ const DashboardLayout = () => {
           <Link to="/user-dashboard/games" className={`nav-item ${isActive('/user-dashboard/games') ? 'active' : ''}`}>
             <GameIcon />
             Games
+          </Link>
+          <Link to="/user-dashboard/questions" className={`nav-item ${isActive('/user-dashboard/questions') ? 'active' : ''}`}>
+            <QnaIcon />
+            Stack Over
+          </Link>
+          <Link to="/user-dashboard/top-contributors" className={`nav-item ${isActive('/user-dashboard/top-contributors') ? 'active' : ''}`}>
+            <span style={{ fontSize: 18, marginRight: 6 }}>🏆</span>
+            Top Contributors
           </Link>
           <Link to="/user-dashboard/requests" className={`nav-item ${isActive('/user-dashboard/requests') ? 'active' : ''}`}>
             <img src={requestsIcon} alt="Requests" className="nav-icon-img" />

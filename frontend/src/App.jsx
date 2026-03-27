@@ -22,6 +22,9 @@ import MCQ from './pages/MCQ';
 import GameDashboard from './pages/GameDashboard';
 import GameInvite from './pages/GameInvite';
 import QuizBattle from './pages/QuizBattle';
+import StackOver from './pages/StackOver';
+import QuestionDetails from './pages/QuestionDetails';
+import TopContributors from './pages/TopContributors';
 
 const AppContent = () => {
   const location = useLocation();
@@ -43,6 +46,9 @@ const AppContent = () => {
           <Route path="upload" element={<DashboardUpload />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
           <Route path="requests" element={<ResourceRequest />} />
+          <Route path="questions" element={<StackOver />} />
+          <Route path="questions/:id" element={<QuestionDetails />} />
+          <Route path="top-contributors" element={<TopContributors />} />
           <Route path="mcq" element={<MCQ />} />
           <Route path="live-class" element={<LiveClass />} />
           <Route path="games" element={<GameDashboard />} />
