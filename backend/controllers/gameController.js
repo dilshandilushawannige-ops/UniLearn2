@@ -4,6 +4,7 @@ const User = require('../models/User');
 const ApiError = require('../utils/ApiError');
 const asyncHandler = require('../utils/asyncHandler');
 const { fetchBattleQuestions } = require('../services/gameService');
+const { getOnlineUsers } = require('../socket/gameSocket');
 
 /**
  * @desc    Get online students (same year/semester)
@@ -137,31 +138,92 @@ const respondToInvite = asyncHandler(async (req, res) => {
     invite.respondedAt = new Date();
     await invite.save();
 
-    // Create quiz battle
-    const questions = await fetchBattleQuestions(
-      invite.year,
-      invite.semester,
-      invite.moduleCode,
-      invite.lectureStart,
-      invite.lectureEnd,
-      invite.questionCount
-    );
-
-    const battle = await QuizBattle.create({
-      player1: invite.fromUser._id,
-      player2: invite.toUser._id,
-      year: invite.year,
-      semester: invite.semester,
-      moduleCode: invite.moduleCode,
-      lectureStart: invite.lectureStart,
-      lectureEnd: invite.lectureEnd,
-      questionCount: invite.questionCount,
-      timePerQuestion: invite.timePerQuestion,
-      questions,
-      status: 'waiting',
+    // Respond immediately to avoid UI freeze
+    res.json({ 
+      invite,
+      message: 'Invite accepted. Generating questions...'
     });
 
-    res.json({ invite, battle });
+    // Generate questions asynchronously in background
+    (async () => {
+      try {
+        console.log('Starting AI question generation...');
+        
+        const questions = await fetchBattleQuestions(
+          invite.year,
+          invite.semester,
+          invite.moduleCode,
+          invite.lectureStart,
+          invite.lectureEnd,
+          invite.questionCount
+        );
+
+        console.log('Questions generated successfully');
+
+        const battle = await QuizBattle.create({
+          player1: invite.fromUser._id,
+          player2: invite.toUser._id,
+          year: invite.year,
+          semester: invite.semester,
+          moduleCode: invite.moduleCode,
+          lectureStart: invite.lectureStart,
+          lectureEnd: invite.lectureEnd,
+          questionCount: invite.questionCount,
+          timePerQuestion: invite.timePerQuestion,
+          questions,
+          status: 'waiting',
+        });
+
+        console.log('Battle created:', battle._id);
+
+        // Emit battle ready event to both players via socket
+        const io = req.app.get('io');
+        if (io) {
+          console.log('Emitting battle:ready event');
+          const onlineUsers = getOnlineUsers();
+          const player1Info = onlineUsers.get(invite.fromUser._id.toString());
+          const player2Info = onlineUsers.get(invite.toUser._id.toString());
+
+          const battleReadyData = {
+            battleId: battle._id.toString(),
+            player1Id: invite.fromUser._id.toString(),
+            player2Id: invite.toUser._id.toString(),
+          };
+
+          // Emit to both players individually
+          if (player1Info) {
+            console.log('Emitting to player1:', player1Info.username);
+            io.to(player1Info.socketId).emit('battle:ready', battleReadyData);
+          }
+          if (player2Info) {
+            console.log('Emitting to player2:', player2Info.username);
+            io.to(player2Info.socketId).emit('battle:ready', battleReadyData);
+          }
+        }
+      } catch (error) {
+        console.error('Error generating battle questions:', error);
+        // Optionally emit error event to users
+        const io = req.app.get('io');
+        if (io) {
+          const onlineUsers = getOnlineUsers();
+          const player1Info = onlineUsers.get(invite.fromUser._id.toString());
+          const player2Info = onlineUsers.get(invite.toUser._id.toString());
+          
+          const errorData = {
+            inviteId: invite._id,
+            message: 'Failed to generate questions. Please try again.',
+          };
+
+          if (player1Info) {
+            io.to(player1Info.socketId).emit('battle:error', errorData);
+          }
+          if (player2Info) {
+            io.to(player2Info.socketId).emit('battle:error', errorData);
+          }
+        }
+      }
+    })();
+
   } else if (action === 'reject') {
     invite.status = 'rejected';
     invite.respondedAt = new Date();

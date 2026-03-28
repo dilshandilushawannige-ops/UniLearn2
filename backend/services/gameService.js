@@ -1,8 +1,9 @@
-const MCQSet = require('../models/MCQSet');
+const Resource = require('../models/Resource');
 const ApiError = require('../utils/ApiError');
+const { generateMCQs } = require('./geminiService');
 
 /**
- * Fetch random questions for a quiz battle from existing MCQ sets
+ * Generate AI-based questions for a quiz battle from uploaded lecture PDFs
  * @param {Number} year - Student's year
  * @param {Number} semester - Student's semester
  * @param {String} moduleCode - Module code
@@ -12,46 +13,42 @@ const ApiError = require('../utils/ApiError');
  * @returns {Array} Array of question objects
  */
 const fetchBattleQuestions = async (year, semester, moduleCode, lectureStart, lectureEnd, count) => {
-  // Find MCQ sets matching the criteria
-  const mcqSets = await MCQSet.find({
-    year,
-    semester,
+  // Fetch lecture PDFs in the specified range
+  const lectures = await Resource.find({
+    year: Number(year),
+    semester: Number(semester),
     moduleCode: moduleCode.toUpperCase(),
-    lectureFrom: { $gte: lectureStart },
-    lectureTo: { $lte: lectureEnd },
-  }).select('questions');
+    resourceType: 'lecture_pdf',
+    lectureNo: { $gte: Number(lectureStart), $lte: Number(lectureEnd) },
+  }).sort({ lectureNo: 1 });
 
-  if (!mcqSets || mcqSets.length === 0) {
-    throw new ApiError(404, 'No MCQ sets found for the selected criteria');
+  if (lectures.length === 0) {
+    throw new ApiError(404, 'No lecture PDFs found for the selected range. Please upload lecture PDFs first.');
   }
 
-  // Collect all questions from matching sets
-  const allQuestions = [];
-  mcqSets.forEach((set) => {
-    if (set.questions && set.questions.length > 0) {
-      allQuestions.push(...set.questions);
-    }
-  });
+  // Prepare lecture data for AI generation
+  const lectureData = lectures.map((l) => ({
+    lectureNo: l.lectureNo,
+    lectureTitle: l.lectureTitle || '',
+    text: l.extractedText || '',
+  }));
 
-  if (allQuestions.length === 0) {
-    throw new ApiError(404, 'No questions available for the selected criteria');
-  }
+  // Generate MCQs using AI
+  const mcqJson = await generateMCQs(moduleCode, lectureData, count);
 
-  // Shuffle and pick random questions
-  const shuffled = allQuestions.sort(() => 0.5 - Math.random());
-  const selected = shuffled.slice(0, Math.min(count, shuffled.length));
-
-  if (selected.length < count) {
-    console.warn(`Only ${selected.length} questions available, requested ${count}`);
-  }
-
-  // Return questions without exposing answer initially (we'll keep it server-side)
-  return selected.map((q) => ({
+  // Format questions for battle
+  const questions = (mcqJson.questions || []).map((q) => ({
     q: q.q,
     options: q.options,
     answerIndex: q.answerIndex,
     explanation: q.explanation,
   }));
+
+  if (questions.length === 0) {
+    throw new ApiError(500, 'Failed to generate questions. Please try again.');
+  }
+
+  return questions;
 };
 
 /**

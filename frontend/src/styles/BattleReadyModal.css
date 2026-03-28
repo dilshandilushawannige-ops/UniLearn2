@@ -1,0 +1,128 @@
+/* Battle Ready Modal - Top Center of Viewport */
+.battle-ready-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align to top */
+  padding-top: 40px; /* Space from top */
+  z-index: 9998;
+  pointer-events: all; /* Capture all pointer events */
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.battle-ready-modal {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  padding: 2.5rem 3.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  pointer-events: auto;
+  animation: scaleIn 0.4s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.battle-ready-timer-circle {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.battle-ready-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.battle-ready-progress-bg {
+  fill: none;
+  stroke: rgba(102, 126, 234, 0.2);
+  stroke-width: 8;
+}
+
+.battle-ready-progress-fill {
+  fill: none;
+  stroke: #667eea;
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.battle-ready-countdown {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  z-index: 1;
+}
+
+.battle-ready-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+}
+
+.battle-ready-text {
+  font-size: 1.1rem;
+  color: #5a6c7d;
+  margin: 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .battle-ready-modal {
+    padding: 2rem 2.5rem;
+    gap: 1.5rem;
+    margin: 0 20px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .battle-ready-timer-circle {
+    width: 70px;
+    height: 70px;
+  }
+
+  .battle-ready-countdown {
+    font-size: 2rem;
+  }
+
+  .battle-ready-title {
+    font-size: 1.5rem;
+  }
+
+  .battle-ready-text {
+    font-size: 1rem;
+  }
+}

@@ -15,20 +15,8 @@ import requestsIcon from '../assets/requests-icon.png';
 // Topbar PNG icons
 import searchIcon from '../assets/search-icon.png';
 import notificationIcon from '../assets/notification-icon.png';
+import gamesIcon from '../assets/games-icon.png';
 
-// For games, we'll use a simple styled div with emoji since no icon exists yet
-const GameIcon = () => (
-  <div style={{ 
-    width: '24px', 
-    height: '24px', 
-    display: 'flex', 
-    alignItems: 'center', 
-    justifyContent: 'center',
-    fontSize: '18px'
-  }}>
-    🎮
-  </div>
-);
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -79,7 +67,7 @@ const DashboardLayout = () => {
             MCQ Practice
           </Link>
           <Link to="/user-dashboard/games" className={`nav-item ${isActive('/user-dashboard/games') ? 'active' : ''}`}>
-            <GameIcon />
+            <img src={gamesIcon} alt="Games" className="nav-icon-img" />
             Games
           </Link>
           <Link to="/user-dashboard/requests" className={`nav-item ${isActive('/user-dashboard/requests') ? 'active' : ''}`}>
