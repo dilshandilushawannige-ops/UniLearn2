@@ -17,6 +17,7 @@ const resourceSchema = new mongoose.Schema(
     fileUrl: { type: String, default: '' },
     filePublicId: { type: String, default: '' },
     extractedText: { type: String, default: '' },
+    summary: { type: String, default: '' },
     ytLink: { type: String, default: '' },
     ratings: [
       {

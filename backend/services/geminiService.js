@@ -35,16 +35,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  * Handles code fences like ```json ... ``` or bare JSON.
  */
 const extractJSON = (text) => {
-  try { return JSON.parse(text.trim()); } catch (_) {}
+  try { return JSON.parse(text.trim()); } catch (_) { }
 
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) {
-    try { return JSON.parse(fenceMatch[1].trim()); } catch (_) {}
+    try { return JSON.parse(fenceMatch[1].trim()); } catch (_) { }
   }
 
   const braceMatch = text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
   if (braceMatch) {
-    try { return JSON.parse(braceMatch[1].trim()); } catch (_) {}
+    try { return JSON.parse(braceMatch[1].trim()); } catch (_) { }
   }
 
   throw new Error('Could not extract valid JSON from AI response');
@@ -84,7 +84,7 @@ const callAI = async (prompt, jsonMode = true) => {
 
       const requestPayload = { model, messages };
       // Some models support response_format — add it opportunistically
-      try { requestPayload.response_format = { type: 'json_object' }; } catch (_) {}
+      try { requestPayload.response_format = { type: 'json_object' }; } catch (_) { }
 
       let completion = await openrouter.chat.completions.create(requestPayload);
 
@@ -234,8 +234,7 @@ const generateMCQs = async (moduleCode, lectures, numQuestions = 10) => {
   const lectureContent = lectures
     .map(
       (l) =>
-        `=== LECTURE ${l.lectureNo}${l.lectureTitle ? ': ' + l.lectureTitle : ''} ===\n${
-          l.text.trim() || '[No text extracted for this lecture]'
+        `=== LECTURE ${l.lectureNo}${l.lectureTitle ? ': ' + l.lectureTitle : ''} ===\n${l.text.trim() || '[No text extracted for this lecture]'
         }`
     )
     .join('\n\n');
@@ -317,5 +316,28 @@ INSTRUCTIONS:
   return callAI(prompt);
 };
 
-module.exports = { generateStudyPlan, generateMCQs, generateDaySummary };
+const generateResourceSummary = async (contentBlock) => {
+  const prompt = `You are an expert academic assistant helping students quickly digest lecture materials.
+Read the following extracted text from a university lecture/resource and provide a highly useful, structured summary (around 300 to 500 words).
+Focus on key theories, core concepts, formulas (if any), and critical definitions.
+Use proper formatting like headings and bullet points.
+Make it easy to read and revise for exams.
+If the text is very short or unreadable, just say "The provided content does not contain enough text for a comprehensive summary."
+
+CONTENT:
+---
+${contentBlock}
+---
+
+INSTRUCTIONS:
+Respond with ONLY valid JSON strictly matching this format:
+{
+  "summary": "Full formatted comprehensive summary here..."
+}`;
+
+  const response = await callAI(prompt);
+  return response ? response.summary : "";
+};
+
+module.exports = { generateStudyPlan, generateMCQs, generateDaySummary, generateResourceSummary };
 
