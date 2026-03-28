@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { gamesAPI } from '../api/games';
 import { modulesAPI } from '../api/modules';
+import { resourcesAPI } from '../api/resources';
 import '../styles/GameInvite.css';
 
 const GameInvite = () => {
@@ -24,6 +25,7 @@ const GameInvite = () => {
   const [loading, setLoading] = useState(false);
   const [loadingModules, setLoadingModules] = useState(true);
   const [error, setError] = useState('');
+  const [availableLectures, setAvailableLectures] = useState([]);
 
   useEffect(() => {
     // Fetch student info, online count, and modules
@@ -56,6 +58,22 @@ const GameInvite = () => {
     }
   };
 
+  // Fetch available lecture PDFs when module is selected
+  useEffect(() => {
+    if (!moduleCode || !user) {
+      setAvailableLectures([]);
+      return;
+    }
+    resourcesAPI.getAll({
+      year: user.currentYear,
+      semester: user.currentSemester,
+      moduleCode,
+      resourceType: 'lecture_pdf'
+    })
+      .then((data) => setAvailableLectures(data.sort((a, b) => a.lectureNo - b.lectureNo)))
+      .catch(() => setAvailableLectures([]));
+  }, [moduleCode, user]);
+
   const handleQuestionCountSelect = (count) => {
     setQuestionCount(count);
   };
@@ -83,9 +101,38 @@ const GameInvite = () => {
       return;
     }
 
-    if (lectureStart > lectureEnd) {
+    const startNum = parseInt(lectureStart);
+    const endNum = parseInt(lectureEnd);
+
+    // Validate lecture range (1-15)
+    if (startNum < 1 || startNum > 15) {
+      setError('Start lecture must be between 1 and 15');
+      return;
+    }
+
+    if (endNum < 1 || endNum > 15) {
+      setError('End lecture must be between 1 and 15');
+      return;
+    }
+
+    if (startNum > endNum) {
       setError('Start lecture must be less than or equal to end lecture');
       return;
+    }
+
+    // Check for missing lectures
+    if (availableLectures.length > 0) {
+      const missingLectures = [];
+      for (let i = startNum; i <= endNum; i++) {
+        if (!availableLectures.some(lec => lec.lectureNo === i)) {
+          missingLectures.push(i);
+        }
+      }
+
+      if (missingLectures.length > 0) {
+        setError(`Missing lecture PDFs: ${missingLectures.join(', ')}. Please upload all required lectures first.`);
+        return;
+      }
     }
 
     setLoading(true);
@@ -96,8 +143,8 @@ const GameInvite = () => {
       const { invite } = await gamesAPI.createInvite({
         toUserId: studentId,
         moduleCode: moduleCode.toUpperCase(),
-        lectureStart: parseInt(lectureStart),
-        lectureEnd: parseInt(lectureEnd),
+        lectureStart: startNum,
+        lectureEnd: endNum,
         questionCount: parseInt(questionCount),
         timePerQuestion: finalTime,
       });
@@ -183,6 +230,36 @@ const GameInvite = () => {
               )}
             </div>
 
+            {/* Available Lectures Info */}
+            {moduleCode && availableLectures.length > 0 && (
+              <div className="form-section">
+                <div style={{ 
+                  padding: '0.5rem 0.75rem', 
+                  fontSize: '0.85rem', 
+                  backgroundColor: '#dbeafe', 
+                  color: '#1e40af', 
+                  borderRadius: '6px',
+                  marginBottom: '0.5rem'
+                }}>
+                  Available lectures: {availableLectures.map(l => `Lec ${l.lectureNo}`).join(' · ')}
+                </div>
+              </div>
+            )}
+            {moduleCode && availableLectures.length === 0 && (
+              <div className="form-section">
+                <div style={{ 
+                  padding: '0.5rem 0.75rem', 
+                  fontSize: '0.85rem', 
+                  backgroundColor: '#fee2e2', 
+                  color: '#991b1b', 
+                  borderRadius: '6px',
+                  marginBottom: '0.5rem'
+                }}>
+                  No lecture PDFs uploaded for this module yet. Upload lecture PDFs first.
+                </div>
+              </div>
+            )}
+
             {/* Lecture Range */}
             <div className="form-section">
               <div className="lecture-range">
@@ -194,6 +271,7 @@ const GameInvite = () => {
                     value={lectureStart}
                     onChange={(e) => setLectureStart(e.target.value)}
                     min="1"
+                    max="15"
                   />
                 </div>
                 <div className="lecture-input-group">
@@ -204,6 +282,7 @@ const GameInvite = () => {
                     value={lectureEnd}
                     onChange={(e) => setLectureEnd(e.target.value)}
                     min="1"
+                    max="15"
                   />
                 </div>
               </div>

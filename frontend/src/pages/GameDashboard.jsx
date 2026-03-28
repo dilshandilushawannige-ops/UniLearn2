@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { gamesAPI } from '../api/games';
 import InviteNotification from '../components/InviteNotification';
+import BattleToast from '../components/BattleToast';
+import BattleReadyModal from '../components/BattleReadyModal';
 import '../styles/GameDashboard.css';
 
 const GameDashboard = () => {
@@ -16,6 +18,8 @@ const GameDashboard = () => {
   const [battleHistory, setBattleHistory] = useState([]);
   const [stats, setStats] = useState(null);
   const [incomingInvite, setIncomingInvite] = useState(null);
+  const [generatingBattle, setGeneratingBattle] = useState(null);
+  const [battleReady, setBattleReady] = useState(null);
 
   // Fetch initial data
   useEffect(() => {
@@ -50,9 +54,26 @@ const GameDashboard = () => {
       fetchActiveInvites(); // Refresh invites list
     });
 
+    socket.on('battle:generating', (data) => {
+      console.log('Battle generating:', data);
+      setGeneratingBattle(data);
+    });
+
+    socket.on('battle:ready', (data) => {
+      console.log('Battle ready:', data);
+      const { battleId, player1Id, player2Id } = data;
+      
+      // Check if current user is one of the players
+      if (user && (user._id === player1Id || user._id === player2Id)) {
+        setGeneratingBattle(null); // Hide generating toast
+        setBattleReady(battleId); // Show ready modal
+      }
+    });
+
     socket.on('invite:accepted', (data) => {
-      // Navigate to battle
-      window.location.href = `/user-dashboard/games/battle/${data.battleId}`;
+      // Inviter receives this - don't navigate, just show toast
+      console.log('Invite accepted:', data);
+      fetchActiveInvites();
     });
 
     socket.on('invite:rejected', (data) => {
@@ -64,10 +85,12 @@ const GameDashboard = () => {
       socket.off('connect', handleConnect);
       socket.off('users:online');
       socket.off('invite:received');
+      socket.off('battle:generating');
+      socket.off('battle:ready');
       socket.off('invite:accepted');
       socket.off('invite:rejected');
     };
-  }, [socket, connected]);
+  }, [socket, connected, user]);
 
   const fetchOnlineStudents = async () => {
     try {
@@ -108,6 +131,12 @@ const GameDashboard = () => {
     // Navigate to invite page
     navigate(`/user-dashboard/games/invite/${student._id}`);
   };
+
+  const handleBattleRedirect = useCallback((battleId) => {
+    console.log('handleBattleRedirect called with:', battleId);
+    setBattleReady(null);
+    navigate(`/user-dashboard/games/battle/${battleId}`);
+  }, [navigate]);
 
   const getStudentStatus = (student) => {
     return student.status || 'online';
@@ -345,7 +374,7 @@ const GameDashboard = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modals and Notifications */}
       {incomingInvite && (
         <InviteNotification
           invite={incomingInvite}
@@ -354,6 +383,24 @@ const GameDashboard = () => {
             setIncomingInvite(null);
             fetchActiveInvites();
           }}
+        />
+      )}
+
+      {/* Generating Toast */}
+      {generatingBattle && (
+        <BattleToast
+          type="generating"
+          message="Generating quiz questions..."
+          subMessage={`This may take 30-60 seconds depending on content size. Module: ${generatingBattle.moduleCode} (Lectures ${generatingBattle.lectureStart}-${generatingBattle.lectureEnd})`}
+          onClose={() => setGeneratingBattle(null)}
+        />
+      )}
+
+      {/* Battle Ready Modal */}
+      {battleReady && (
+        <BattleReadyModal
+          battleId={battleReady}
+          onRedirect={handleBattleRedirect}
         />
       )}
     </div>

@@ -132,11 +132,12 @@ axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 1. Same year/semester only
 2. One battle per user
 3. 30-second invite expiry
-4. Identical questions for both
-5. Answer locking after submit
-6. Timeout = incorrect
-7. +1 correct, 0 incorrect
-8. Higher score wins, equal = draw
+4. AI-generated questions from selected lectures
+5. Identical questions for both players
+6. Answer locking after submit
+7. Timeout = incorrect
+8. +1 correct, 0 incorrect
+9. Higher score wins, equal = draw
 
 ## 🛠️ Common Tasks
 
@@ -214,6 +215,26 @@ styles/InviteNotification.css
 App.jsx (updated)
 ```
 
+## 🤖 AI MCQ Generation
+
+The game now uses AI to generate questions dynamically from uploaded lecture PDFs:
+
+```javascript
+// Questions are generated when invite is accepted
+// Uses Gemini AI service to create MCQs from lecture content
+// Requires lecture PDFs to be uploaded for selected range
+// Same logic as MCQ Practice component
+```
+
+### Loading Experience
+When a player accepts an invite, they see a loading modal:
+- Animated spinner
+- "Generating Quiz Questions" title
+- Shows module code and lecture range
+- Displays estimated time (5-15 seconds)
+- Modal automatically closes when questions are ready
+- User is redirected to battle room
+
 ## 🔍 Useful Queries
 
 ```javascript
@@ -233,18 +254,27 @@ db.quizbattles.countDocuments({
   winner: userId,
   status: 'finished'
 })
+
+// Check available lectures for AI generation
+db.resources.find({
+  year: 1,
+  semester: 1,
+  moduleCode: 'CS101',
+  resourceType: 'lecture_pdf'
+})
 ```
 
 ## 💡 Tips
 
 - Test with two browsers/incognito
-- Create MCQ sets before testing
+- Upload lecture PDFs before testing games
 - Check socket connection first
 - Monitor server logs for errors
 - Use React DevTools for state
 - Use MongoDB Compass for data
 - Test timeout scenarios
 - Test reconnection cases
+- AI generation may take 5-10 seconds
 
 ## 📚 Documentation
 
