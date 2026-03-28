@@ -16,6 +16,7 @@ import DashboardStudyPlan from './pages/DashboardStudyPlan';
 import Resources from './pages/Resources';
 import ResourceRequest from './pages/ResourceRequest';
 import ResourceDetails from './pages/ResourceDetails';
+import ResourceSummary from './pages/ResourceSummary';
 import LiveClass from './pages/LiveClass';
 import StudyPlan from './pages/StudyPlan';
 import MCQ from './pages/MCQ';
@@ -40,6 +41,7 @@ const AppContent = () => {
           <Route index element={<DashboardHome />} />
           <Route path="resources" element={<DashboardResources />} />
           <Route path="resources/:id" element={<ResourceDetails />} />
+          <Route path="resources/:id/summary" element={<ResourceSummary />} />
           <Route path="upload" element={<DashboardUpload />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
           <Route path="requests" element={<ResourceRequest />} />
@@ -89,7 +91,7 @@ const App = () => {
   return (
     <AuthProvider>
       <SocketProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppContent />
         </BrowserRouter>
       </SocketProvider>

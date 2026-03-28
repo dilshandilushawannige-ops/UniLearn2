@@ -2,6 +2,7 @@
 const Resource = require('../models/Resource');
 const { uploadToCloudinary } = require('../services/cloudinaryService');
 const { extractTextFromPDF } = require('../services/pdfService');
+const { generateResourceSummary } = require('../services/geminiService');
 
 // @desc  Upload / create a learning resource
 // @route POST /api/resources
@@ -63,6 +64,17 @@ const createResource = async (req, res) => {
       }
     }
 
+    let summary = '';
+    if (extractedText && extractedText.trim().length > 50) {
+      try {
+        // Truncate to avoid massive token costs/limits (e.g. first 15000 chars)
+        const textForSummary = extractedText.substring(0, 15000);
+        summary = await generateResourceSummary(textForSummary);
+      } catch (err) {
+        console.error('Failed to generate summary:', err);
+      }
+    }
+
     const resource = await Resource.create({
       uploader: req.user._id,
       title,
@@ -75,6 +87,7 @@ const createResource = async (req, res) => {
       fileUrl,
       filePublicId,
       extractedText,
+      summary,
       ytLink: ytLink || '',
     });
 
@@ -164,4 +177,36 @@ const rateResource = async (req, res) => {
   }
 };
 
-module.exports = { createResource, getResources, getResourceById, rateResource };
+// @desc  Generate AI Summary on demand
+// @route POST /api/resources/:id/generate-summary
+// @access Private
+const generateSummary = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+    if (resource.summary) {
+      return res.json({ summary: resource.summary });
+    }
+
+    if (!resource.extractedText || resource.extractedText.trim().length < 20) {
+      return res.status(400).json({ message: 'Not enough text extracted from this PDF to generate a summary.' });
+    }
+
+    const { generateResourceSummary } = require('../services/geminiService');
+    const textForSummary = resource.extractedText.substring(0, 15000);
+    const summary = await generateResourceSummary(textForSummary);
+
+    if (summary) {
+      resource.summary = summary;
+      await resource.save();
+    }
+
+    res.json({ summary: resource.summary });
+  } catch (error) {
+    console.error('Error generating summary:', error);
+    res.status(500).json({ message: 'Failed to generate summary' });
+  }
+};
+
+module.exports = { createResource, getResources, getResourceById, rateResource, generateSummary };
