@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema(
     badges: { type: [badgeSchema], default: [] },
     activityStats: { type: activityStatsSchema, default: () => ({}) },
     voteHistory: { type: [voteHistorySchema], default: [] },
+    bookmarkedQuestions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
+    bookmarkedAnswers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Answer' }],
     role: { type: String, enum: ['user', 'moderator', 'admin'], default: 'user' },
     isActive: { type: Boolean, default: true },
   },

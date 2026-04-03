@@ -2,6 +2,23 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import '../styles/StackOver.css';
 
+const rankBadge = (rank) => {
+  if (rank === 1) return { label: '🥇 Champion', tone: 'gold' };
+  if (rank === 2) return { label: '🥈 Runner-up', tone: 'silver' };
+  if (rank === 3) return { label: '🥉 3rd Place', tone: 'bronze' };
+  return null;
+};
+
+const badgeTone = (name = '') => {
+  const v = name.toLowerCase();
+  if (v.includes('#1') || v.includes('champion')) return 'gold';
+  if (v.includes('#2') || v.includes('runner')) return 'silver';
+  if (v.includes('#3') || v.includes('third')) return 'bronze';
+  if (v.includes('top')) return 'teal';
+  if (v.includes('helpful') || v.includes('pro')) return 'purple';
+  return 'default';
+};
+
 const TopContributors = () => {
   const [leaderboard, setLeaderboard] = useState({ topContributors: [], myStats: null });
   const [loading, setLoading] = useState(true);
@@ -45,9 +62,18 @@ const TopContributors = () => {
               <div key={u.userId} className="leaderboard-table-row">
                 <span className="leaderboard-cell">{u.rank}</span>
                 <span className="leaderboard-cell">{u.username}</span>
-                <span className="leaderboard-cell">
-                  {u.rank === 1 ? '🥇 ' : u.rank === 2 ? '🥈 ' : u.rank === 3 ? '🥉 ' : ''}
-                  {(u.badges || []).slice(0, 2).map((b) => b.name).join(', ')}
+                <span className="leaderboard-cell leaderboard-badges-cell">
+                  {rankBadge(u.rank) && (
+                    <span className={`leaderboard-badge-pill rank-${rankBadge(u.rank).tone}`}>
+                      {rankBadge(u.rank).label}
+                    </span>
+                  )}
+                  {(u.badges || []).slice(0, 3).map((b) => (
+                    <span key={b.name} className={`leaderboard-badge-pill ${badgeTone(b.name)}`}>
+                      {b.name}
+                    </span>
+                  ))}
+                  {!u.badges?.length && <span className="leaderboard-badge-empty">No badges yet</span>}
                 </span>
                 <span className="leaderboard-cell">{u.questionsAsked}</span>
                 <span className="leaderboard-cell">{u.answersGiven}</span>

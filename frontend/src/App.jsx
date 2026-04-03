@@ -14,7 +14,6 @@ import DashboardResources from './pages/DashboardResources';
 import DashboardUpload from './pages/DashboardUpload';
 import DashboardStudyPlan from './pages/DashboardStudyPlan';
 import Resources from './pages/Resources';
-import ResourceRequest from './pages/ResourceRequest';
 import ResourceDetails from './pages/ResourceDetails';
 import LiveClass from './pages/LiveClass';
 import StudyPlan from './pages/StudyPlan';
@@ -45,7 +44,6 @@ const AppContent = () => {
           <Route path="resources/:id" element={<ResourceDetails />} />
           <Route path="upload" element={<DashboardUpload />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
-          <Route path="requests" element={<ResourceRequest />} />
           <Route path="questions" element={<StackOver />} />
           <Route path="questions/:id" element={<QuestionDetails />} />
           <Route path="top-contributors" element={<TopContributors />} />
@@ -67,10 +65,6 @@ const AppContent = () => {
         <Route
           path="/resources"
           element={<ProtectedRoute><Resources /></ProtectedRoute>}
-        />
-        <Route
-          path="/resource-request"
-          element={<ProtectedRoute><ResourceRequest /></ProtectedRoute>}
         />
         <Route
           path="/live-class"

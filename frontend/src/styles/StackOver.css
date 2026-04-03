@@ -89,6 +89,72 @@
   color: #fff;
 }
 
+.forum-tabs-row2 {
+  margin-top: -6px;
+  opacity: 0.95;
+}
+
+.forum-tab-bookmarked {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.forum-bookmark-btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  background: #f3f4f6;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.forum-bookmark-btn.on {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.forum-bookmark-hit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+}
+
+.forum-bookmark-icon {
+  font-size: 18px;
+  line-height: 1;
+  color: #9ca3af;
+}
+
+.forum-bookmark-icon.on {
+  color: #ca8a04;
+}
+
+.forum-bookmark-icon.dim {
+  color: #d1d5db;
+  font-size: 18px;
+}
+
+.forum-stat-value-sm {
+  font-size: 15px !important;
+}
+
+.forum-saved-answer-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
 .forum-card-list {
   display: grid;
   gap: 12px;
@@ -334,6 +400,17 @@
   cursor: pointer;
 }
 
+.form-error {
+  margin-top: 8px;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-error-submit {
+  margin-top: 12px;
+}
+
 .leaderboard-card {
   border: 1px solid #e6ebf2;
   border-radius: 12px;
@@ -360,7 +437,7 @@
 
 .leaderboard-table-head {
   display: grid;
-  grid-template-columns: 50px 1fr 160px 90px 90px 110px;
+  grid-template-columns: 56px 1fr minmax(220px, 2fr) 90px 90px 110px;
   gap: 10px;
   padding: 8px 0;
   color: #6b7280;
@@ -370,7 +447,7 @@
 
 .leaderboard-table-row {
   display: grid;
-  grid-template-columns: 50px 1fr 160px 90px 90px 110px;
+  grid-template-columns: 56px 1fr minmax(220px, 2fr) 90px 90px 110px;
   gap: 10px;
   padding: 10px 0;
   border-top: 1px solid #f1f5f9;
@@ -382,6 +459,72 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.leaderboard-badges-cell {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: initial;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.leaderboard-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid #e5e7eb;
+  color: #334155;
+  background: #f8fafc;
+}
+
+.leaderboard-badge-pill.gold,
+.leaderboard-badge-pill.rank-gold {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.leaderboard-badge-pill.silver,
+.leaderboard-badge-pill.rank-silver {
+  background: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+.leaderboard-badge-pill.bronze,
+.leaderboard-badge-pill.rank-bronze {
+  background: #ffedd5;
+  color: #9a3412;
+  border-color: #fdba74;
+}
+
+.leaderboard-badge-pill.teal {
+  background: #ecfeff;
+  color: #0f766e;
+  border-color: #99f6e4;
+}
+
+.leaderboard-badge-pill.purple {
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-color: #ddd6fe;
+}
+
+.leaderboard-badge-pill.default {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd5e1;
+}
+
+.leaderboard-badge-empty {
+  color: #9ca3af;
+  font-size: 12px;
 }
 
 .your-stats-grid {

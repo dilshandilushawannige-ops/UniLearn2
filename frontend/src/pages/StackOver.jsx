@@ -1,12 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import '../styles/StackOver.css';
 
 const TAGS = ['cn', 'dms', 'se', 'esd', 'dbms', 'os', 'networking', 'java', 'python', 'sql'];
 
+const questionVoteScore = (q) => {
+  if (typeof q?.voteScore === 'number' && !Number.isNaN(q.voteScore)) return q.voteScore;
+  const up = Array.isArray(q?.upvotes) ? q.upvotes.length : 0;
+  const down = Array.isArray(q?.downvotes) ? q.downvotes.length : 0;
+  return up - down;
+};
+
 const StackOver = () => {
+  const { user } = useAuth();
   const [questions, setQuestions] = useState([]);
+  const [savedAnswers, setSavedAnswers] = useState([]);
+  const [listMode, setListMode] = useState('all');
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
@@ -16,6 +27,8 @@ const StackOver = () => {
   const [similarLoading, setSimilarLoading] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({ search: '', answered: '', sort: 'new' });
+  const [formErrors, setFormErrors] = useState({ title: '', description: '', tags: '', submit: '' });
+  const [touched, setTouched] = useState({ title: false, description: false, tags: false });
 
   const queryString = useMemo(() => {
     const q = new URLSearchParams();
@@ -25,21 +38,63 @@ const StackOver = () => {
     return q.toString();
   }, [filters]);
 
-  const fetchQuestions = async () => {
-    setLoading(true);
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        if (listMode === 'saved-q') {
+          const { data } = await api.get('/questions/bookmarks/mine');
+          setQuestions(data.data || []);
+          setSavedAnswers([]);
+        } else if (listMode === 'saved-a') {
+          const { data } = await api.get('/answers/bookmarks/mine');
+          setSavedAnswers(data.data || []);
+          setQuestions([]);
+        } else {
+          const { data } = await api.get(`/questions${queryString ? `?${queryString}` : ''}`);
+          setQuestions(data.data || []);
+          setSavedAnswers([]);
+        }
+      } catch (err) {
+        console.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [queryString, listMode]);
+
+  const toggleQuestionBookmark = async (q, e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    if (!user) return;
     try {
-      const { data } = await api.get(`/questions${queryString ? `?${queryString}` : ''}`);
-      setQuestions(data.data || []);
+      const { data } = await api.post(`/questions/${q._id}/bookmark`);
+      const bookmarked = data.bookmarked;
+      if (listMode === 'saved-q' && !bookmarked) {
+        setQuestions((prev) => prev.filter((row) => row._id !== q._id));
+        return;
+      }
+      setQuestions((prev) => prev.map((row) => (row._id === q._id ? { ...row, isBookmarked: bookmarked, bookmarkCount: data.bookmarkCount } : row)));
     } catch (err) {
       console.error(err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchQuestions();
-  }, [queryString]);
+  const toggleAnswerBookmark = async (ans) => {
+    if (!user) return;
+    try {
+      const { data } = await api.post(`/answers/${ans._id}/bookmark`);
+      const bookmarked = data.bookmarked;
+      if (listMode === 'saved-a' && !bookmarked) {
+        setSavedAnswers((prev) => prev.filter((row) => row._id !== ans._id));
+        return;
+      }
+      setSavedAnswers((prev) => prev.map((row) => (row._id === ans._id ? { ...row, isBookmarked: bookmarked, bookmarkCount: data.bookmarkCount } : row)));
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
 
   useEffect(() => {
     const text = title.trim();
@@ -74,21 +129,51 @@ const StackOver = () => {
 
   const invalidTags = useMemo(() => parsedTags.filter((t) => !TAGS.includes(t)), [parsedTags]);
 
+  const validateAskForm = useMemo(() => {
+    const errors = { title: '', description: '', tags: '' };
+    const t = title.trim();
+    const d = description.trim();
+
+    if (!t) errors.title = 'Title is required.';
+    else if (t.length < 10) errors.title = 'Title must be at least 10 characters.';
+    else if (t.length > 200) errors.title = 'Title must be at most 200 characters.';
+
+    if (!d) errors.description = 'Details are required.';
+    else if (d.length < 20) errors.description = 'Details must be at least 20 characters.';
+
+    if (!parsedTags.length) errors.tags = 'At least 1 tag is required.';
+    else if (parsedTags.length > 5) errors.tags = 'You can add up to 5 tags only.';
+    else if (invalidTags.length) errors.tags = `Invalid tag(s): ${invalidTags.join(', ')}.`;
+
+    return errors;
+  }, [title, description, parsedTags.length, invalidTags]);
+
+  const isAskFormValid = useMemo(() => {
+    return !validateAskForm.title && !validateAskForm.description && !validateAskForm.tags;
+  }, [validateAskForm]);
+
   const submitQuestion = async (e) => {
     e.preventDefault();
     try {
-      if (invalidTags.length) {
-        alert(`Invalid tag(s): ${invalidTags.join(', ')}. Allowed: ${TAGS.join(', ')}`);
+      setTouched({ title: true, description: true, tags: true });
+      setFormErrors((prev) => ({ ...prev, submit: '' }));
+      if (!isAskFormValid) {
+        setFormErrors((prev) => ({ ...prev, ...validateAskForm, submit: 'Please fix the errors before posting.' }));
         return;
       }
       await api.post('/questions', { title, description, tags: parsedTags });
       setTitle('');
       setDescription('');
       setTagsText('');
+      setFormErrors({ title: '', description: '', tags: '', submit: '' });
+      setTouched({ title: false, description: false, tags: false });
       setShowForm(false);
-      fetchQuestions();
+      if (listMode === 'all') {
+        const { data } = await api.get(`/questions${queryString ? `?${queryString}` : ''}`);
+        setQuestions(data.data || []);
+      }
     } catch (err) {
-      alert(err.message);
+      setFormErrors((prev) => ({ ...prev, submit: err.message || 'Failed to post question' }));
     }
   };
 
@@ -130,10 +215,18 @@ const StackOver = () => {
       </div>
 
       <div className="forum-tabs">
-        <button onClick={() => setTab('new')} className={`forum-tab ${activeTab === 'new' ? 'active' : ''}`}>Newest</button>
-        <button onClick={() => setTab('votes')} className={`forum-tab ${activeTab === 'votes' ? 'active' : ''}`}>Most Voted</button>
-        <button onClick={() => setTab('unanswered')} className={`forum-tab ${activeTab === 'unanswered' ? 'active' : ''}`}>Unanswered</button>
+        <button type="button" onClick={() => setListMode('all')} className={`forum-tab ${listMode === 'all' ? 'active' : ''}`}>Browse</button>
+        <button type="button" onClick={() => setListMode('saved-q')} className={`forum-tab ${listMode === 'saved-q' ? 'active' : ''}`}>Saved questions</button>
+        <button type="button" onClick={() => setListMode('saved-a')} className={`forum-tab ${listMode === 'saved-a' ? 'active' : ''}`}>Saved answers</button>
       </div>
+
+      {listMode === 'all' && (
+        <div className="forum-tabs forum-tabs-row2">
+          <button type="button" onClick={() => setTab('new')} className={`forum-tab ${activeTab === 'new' ? 'active' : ''}`}>Newest</button>
+          <button type="button" onClick={() => setTab('votes')} className={`forum-tab ${activeTab === 'votes' ? 'active' : ''}`}>Most Voted</button>
+          <button type="button" onClick={() => setTab('unanswered')} className={`forum-tab ${activeTab === 'unanswered' ? 'active' : ''}`}>Unanswered</button>
+        </div>
+      )}
 
       {showForm && (
         <div className="ask-modal-backdrop" role="dialog" aria-modal="true" onMouseDown={(e) => {
@@ -144,6 +237,9 @@ const StackOver = () => {
               <div>
                 <h2 className="ask-title">Ask a Question</h2>
                 <p className="ask-subtitle">Be specific and clear to get the best answers.</p>
+                <p className="ask-help" style={{ marginTop: 8 }}>
+                  <strong>Validation:</strong> title 10–200 chars • details min 20 chars • tags required (1–5) from allowed list only.
+                </p>
               </div>
               <button
                 type="button"
@@ -167,12 +263,14 @@ const StackOver = () => {
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => setTouched((p) => ({ ...p, title: true }))}
                 placeholder="e.g., How do I use useEffect with async functions?"
                 minLength={10}
                 maxLength={200}
                 required
                 className="forum-input"
               />
+              {touched.title && validateAskForm.title && <div className="form-error">{validateAskForm.title}</div>}
             </div>
 
             {title.trim().length >= 10 && (
@@ -201,20 +299,23 @@ const StackOver = () => {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                onBlur={() => setTouched((p) => ({ ...p, description: true }))}
                 placeholder="Describe your question in detail..."
                 minLength={20}
                 required
                 rows={7}
                 className="forum-input ask-textarea"
               />
+              {touched.description && validateAskForm.description && <div className="form-error">{validateAskForm.description}</div>}
             </div>
 
             <div className="ask-field ask-last-field">
-              <label className="ask-label">Tags</label>
+              <label className="ask-label">Tags *</label>
               <div className="ask-help">Add up to 5 tags separated by commas</div>
               <input
                 value={tagsText}
                 onChange={(e) => setTagsText(e.target.value)}
+                onBlur={() => setTouched((p) => ({ ...p, tags: true }))}
                 placeholder={`e.g., ${TAGS.slice(0, 3).join(', ')}`}
                 className="forum-input"
               />
@@ -227,18 +328,46 @@ const StackOver = () => {
               <div className={`ask-allowed-note ${invalidTags.length ? 'error' : ''}`}>
                 Allowed: {TAGS.join(', ')} {invalidTags.length ? `• Invalid: ${invalidTags.join(', ')}` : ''}
               </div>
+              {touched.tags && validateAskForm.tags && <div className="form-error">{validateAskForm.tags}</div>}
             </div>
 
             <div className="ask-actions">
-              <button type="submit" className="forum-primary-btn ask-submit-btn">Post Question</button>
+              <button type="submit" className="forum-primary-btn ask-submit-btn" disabled={!isAskFormValid}>Post Question</button>
               <button type="button" onClick={() => setShowForm(false)} className="ask-cancel-btn">Cancel</button>
             </div>
+            {formErrors.submit && <div className="form-error form-error-submit">{formErrors.submit}</div>}
           </form>
         </div>
       )}
 
       {loading ? (
         <p className="forum-state-note">Loading...</p>
+      ) : listMode === 'saved-a' ? (
+        <div className="forum-card-list">
+          {savedAnswers.map((ans) => (
+            <article key={ans._id} className="forum-card">
+              <div className="forum-saved-answer-top">
+                <Link to={`/user-dashboard/questions/${ans.question?._id}`} className="forum-question-link">
+                  {ans.question?.title || 'Question'}
+                </Link>
+                {user && (
+                  <button
+                    type="button"
+                    className="forum-bookmark-btn on"
+                    title="Remove from saved"
+                    onClick={() => toggleAnswerBookmark(ans)}
+                    aria-pressed
+                  >
+                    ★ Saved
+                  </button>
+                )}
+              </div>
+              <p className="forum-question-snippet" style={{ whiteSpace: 'pre-wrap' }}>{(ans.content || '').slice(0, 280)}{(ans.content || '').length > 280 ? '…' : ''}</p>
+              <small className="forum-author-line">Answer by {ans.user?.username} ♦ {ans.user?.reputationScore || 0}</small>
+            </article>
+          ))}
+          {!savedAnswers.length && <p className="forum-state-note">No saved answers yet. Open a question and bookmark an answer.</p>}
+        </div>
       ) : (
         <div className="forum-card-list">
           {questions.map((q) => (
@@ -246,8 +375,8 @@ const StackOver = () => {
               <div className="forum-card-inner">
                 <div className="forum-stats-col">
                   <div className="forum-stat-box">
-                    <div className="forum-stat-value">{q.voteScore || 0}</div>
-                    <div className="forum-stat-label">votes</div>
+                    <div className="forum-stat-value">{questionVoteScore(q)}</div>
+                    <div className="forum-stat-label">score</div>
                   </div>
                   <div className="forum-stat-box">
                     <div className="forum-stat-value">{q.answerCount || q.answers?.length || 0}</div>
@@ -256,6 +385,26 @@ const StackOver = () => {
                   <div className="forum-stat-box">
                     <div className="forum-stat-value">{q.viewCount || 0}</div>
                     <div className="forum-stat-label">views</div>
+                  </div>
+                  <div className="forum-stat-box forum-stat-bookmark">
+                    {user ? (
+                      <button
+                        type="button"
+                        className="forum-bookmark-hit"
+                        title={q.isBookmarked ? 'Remove bookmark' : 'Save question'}
+                        onClick={(e) => toggleQuestionBookmark(q, e)}
+                        aria-pressed={!!q.isBookmarked}
+                      >
+                        <span className={`forum-bookmark-icon ${q.isBookmarked ? 'on' : ''}`}>{q.isBookmarked ? '★' : '☆'}</span>
+                        <span className="forum-stat-value forum-stat-value-sm">{q.bookmarkCount ?? 0}</span>
+                      </button>
+                    ) : (
+                      <>
+                        <span className="forum-bookmark-icon dim">☆</span>
+                        <span className="forum-stat-value forum-stat-value-sm">{q.bookmarkCount ?? 0}</span>
+                      </>
+                    )}
+                    <div className="forum-stat-label">saved</div>
                   </div>
                 </div>
                 <div className="forum-card-main">
@@ -271,7 +420,7 @@ const StackOver = () => {
               </div>
             </article>
           ))}
-          {!questions.length && <p className="forum-state-note">No questions found.</p>}
+          {!questions.length && <p className="forum-state-note">{listMode === 'saved-q' ? 'No saved questions yet.' : 'No questions found.'}</p>}
         </div>
       )}
     </div>

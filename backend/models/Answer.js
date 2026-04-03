@@ -9,6 +9,7 @@ const answerSchema = new mongoose.Schema(
     upvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     downvotes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     voteScore: { type: Number, default: 0 },
+    bookmarkCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

@@ -7,6 +7,8 @@ const { evaluateBadges } = require('../services/badgeService');
 
 const isAdmin = (user) => ['admin', 'moderator'].includes(user?.role);
 
+const computeVoteScore = (doc) => (doc.upvotes?.length || 0) - (doc.downvotes?.length || 0);
+
 exports.createAnswer = asyncHandler(async (req, res) => {
   const { questionId, content } = req.body;
   const question = await Question.findById(questionId);
@@ -28,12 +30,36 @@ exports.createAnswer = asyncHandler(async (req, res) => {
 
 exports.getAnswersForQuestion = asyncHandler(async (req, res) => {
   const { sort = 'top' } = req.query;
-  const sortMap =
-    sort === 'newest' ? { createdAt: -1 } : sort === 'oldest' ? { createdAt: 1 } : { voteScore: -1, createdAt: -1 };
-  const answers = await Answer.find({ question: req.params.questionId })
-    .populate('user', 'username reputationScore badges avatar')
-    .sort(sortMap);
-  res.json({ success: true, data: answers });
+  const answers = await Answer.find({ question: req.params.questionId }).populate(
+    'user',
+    'username reputationScore badges avatar'
+  );
+
+  answers.forEach((a) => {
+    a.voteScore = computeVoteScore(a);
+  });
+
+  if (sort === 'newest') {
+    answers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  } else if (sort === 'oldest') {
+    answers.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+  } else {
+    answers.sort((a, b) => b.voteScore - a.voteScore || new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  let bookmarkSet = null;
+  if (req.user?._id) {
+    const u = await User.findById(req.user._id).select('bookmarkedAnswers').lean();
+    bookmarkSet = new Set((u?.bookmarkedAnswers || []).map((id) => id.toString()));
+  }
+
+  const data = answers.map((a) => {
+    const o = a.toObject ? a.toObject() : a;
+    o.isBookmarked = bookmarkSet ? bookmarkSet.has(String(o._id)) : false;
+    return o;
+  });
+
+  res.json({ success: true, data });
 });
 
 exports.voteAnswer = asyncHandler(async (req, res) => {
@@ -74,6 +100,9 @@ exports.voteAnswer = asyncHandler(async (req, res) => {
     }
   }
 
+  answer.markModified('upvotes');
+  answer.markModified('downvotes');
+  answer.voteScore = computeVoteScore(answer);
   await answer.save();
   await User.findByIdAndUpdate(answer.user, { $inc: { reputationScore: repDelta, 'activityStats.upvotesReceived': upvoteDelta } });
   await User.findByIdAndUpdate(userId, {
@@ -128,6 +157,7 @@ exports.deleteAnswer = asyncHandler(async (req, res) => {
 
   const wasAccepted = answer.isAccepted;
   const questionId = answer.question;
+  await User.updateMany({}, { $pull: { bookmarkedAnswers: answer._id } });
   await answer.deleteOne();
 
   const update = { $pull: { answers: answer._id } };
@@ -137,5 +167,57 @@ exports.deleteAnswer = asyncHandler(async (req, res) => {
   if (question) await question.save();
 
   res.json({ success: true, message: 'Answer deleted' });
+});
+
+exports.toggleBookmarkAnswer = asyncHandler(async (req, res) => {
+  const answer = await Answer.findById(req.params.id).populate('question', 'isHidden');
+  if (!answer) throw new ApiError(404, 'Answer not found');
+  if (answer.question?.isHidden && !isAdmin(req.user)) throw new ApiError(404, 'Answer not found');
+
+  const user = await User.findById(req.user._id);
+  if (!Array.isArray(user.bookmarkedAnswers)) user.bookmarkedAnswers = [];
+  const aid = answer._id;
+  const had = user.bookmarkedAnswers.some((id) => id.toString() === aid.toString());
+  let bookmarked;
+  if (had) {
+    user.bookmarkedAnswers.pull(aid);
+    await Answer.updateOne({ _id: aid, bookmarkCount: { $gt: 0 } }, { $inc: { bookmarkCount: -1 } });
+    bookmarked = false;
+  } else {
+    user.bookmarkedAnswers.addToSet(aid);
+    await Answer.updateOne({ _id: aid }, { $inc: { bookmarkCount: 1 } });
+    bookmarked = true;
+  }
+  await user.save();
+
+  const fresh = await Answer.findById(aid).select('bookmarkCount').lean();
+  res.json({ success: true, bookmarked, bookmarkCount: Math.max(0, fresh?.bookmarkCount || 0) });
+});
+
+exports.getMyBookmarkedAnswers = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select('bookmarkedAnswers').lean();
+  const ids = user?.bookmarkedAnswers || [];
+  if (!ids.length) return res.json({ success: true, data: [] });
+
+  let answers = await Answer.find({ _id: { $in: ids } })
+    .populate('user', 'username reputationScore badges avatar')
+    .populate('question', 'title isHidden _id');
+
+  answers = answers.filter((a) => a.question && !a.question.isHidden);
+
+  const idOrder = new Map(ids.map((id, i) => [id.toString(), i]));
+  answers.sort((a, b) => (idOrder.get(b._id.toString()) ?? -1) - (idOrder.get(a._id.toString()) ?? -1));
+
+  answers.forEach((a) => {
+    a.voteScore = computeVoteScore(a);
+  });
+
+  const data = answers.map((a) => {
+    const o = a.toObject ? a.toObject() : a;
+    o.isBookmarked = true;
+    return o;
+  });
+
+  res.json({ success: true, data });
 });
 

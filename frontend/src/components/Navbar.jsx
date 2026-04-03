@@ -53,7 +53,6 @@ const Navbar = () => {
 
         <nav>
           <NavLink to="/resource" className={({ isActive }) => (isActive ? 'active' : '')}>Resources</NavLink>
-          <NavLink to="/resource-request" className={({ isActive }) => (isActive ? 'active' : '')}>Resource Request</NavLink>
           <NavLink to="/live-class" className={({ isActive }) => (isActive ? 'active' : '')}>Live Class</NavLink>
           <NavLink to="/study-plan" className={({ isActive }) => (isActive ? 'active' : '')}>Study Plan</NavLink>
           <NavLink to="/mcq" className={({ isActive }) => (isActive ? 'active' : '')}>MCQ Quiz</NavLink>

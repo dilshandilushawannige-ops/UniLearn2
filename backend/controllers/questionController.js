@@ -8,6 +8,8 @@ const { evaluateBadges } = require('../services/badgeService');
 const ALLOWED_TAGS = ['cn', 'dms', 'se', 'esd', 'dbms', 'os', 'networking', 'java', 'python', 'sql'];
 const isAdmin = (user) => ['admin', 'moderator'].includes(user?.role);
 
+const computeQuestionVoteScore = (doc) => (doc.upvotes?.length || 0) - (doc.downvotes?.length || 0);
+
 const normalizeTags = (tags) =>
   [...new Set((Array.isArray(tags) ? tags : []).map((t) => String(t || '').trim().toLowerCase()).filter(Boolean))];
 
@@ -39,19 +41,42 @@ exports.getQuestions = asyncHandler(async (req, res) => {
   if (answered === 'no') query.isAnswered = false;
   if (search.trim()) query.$text = { $search: search.trim() };
 
+  const sortKey = String(sort || 'new').toLowerCase().trim();
+
   const cursor = Question.find(query).populate('user', 'username reputationScore badges avatar');
+  // NOTE: Do not use a narrow `.select({ score: { $meta: 'textScore' } })` here — it would exclude
+  // `upvotes`/`downvotes` and break vote score + "Most Voted" sorting.
   if (search.trim()) {
-    cursor.select({ score: { $meta: 'textScore' } }).sort({ score: { $meta: 'textScore' }, createdAt: -1 });
-  } else if (sort === 'votes') {
-    cursor.sort({ voteScore: -1, createdAt: -1 });
-  } else if (sort === 'views') {
+    cursor.sort({ score: { $meta: 'textScore' }, createdAt: -1 });
+  } else if (sortKey === 'votes') {
+    cursor.sort({ createdAt: -1 });
+  } else if (sortKey === 'views') {
     cursor.sort({ viewCount: -1, createdAt: -1 });
   } else {
     cursor.sort({ createdAt: -1 });
   }
 
   const questions = await cursor;
-  res.json({ success: true, data: questions });
+  questions.forEach((q) => {
+    q.voteScore = computeQuestionVoteScore(q);
+  });
+  if (sortKey === 'votes') {
+    questions.sort((a, b) => b.voteScore - a.voteScore || new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  let bookmarkSet = null;
+  if (req.user?._id) {
+    const u = await User.findById(req.user._id).select('bookmarkedQuestions').lean();
+    bookmarkSet = new Set((u?.bookmarkedQuestions || []).map((id) => id.toString()));
+  }
+
+  const data = questions.map((q) => {
+    const o = q.toObject ? q.toObject() : { ...q };
+    o.isBookmarked = bookmarkSet ? bookmarkSet.has(String(o._id)) : false;
+    return o;
+  });
+
+  res.json({ success: true, data });
 });
 
 exports.getQuestion = asyncHandler(async (req, res) => {
@@ -62,7 +87,18 @@ exports.getQuestion = asyncHandler(async (req, res) => {
   if (!question) throw new ApiError(404, 'Question not found');
   if (question.isHidden && !isAdmin(req.user)) throw new ApiError(404, 'Question not found');
 
-  res.json({ success: true, data: question });
+  question.voteScore = computeQuestionVoteScore(question);
+
+  let isBookmarked = false;
+  if (req.user?._id) {
+    const u = await User.findById(req.user._id).select('bookmarkedQuestions').lean();
+    isBookmarked = (u?.bookmarkedQuestions || []).some((id) => id.toString() === question._id.toString());
+  }
+
+  const payload = question.toObject ? question.toObject() : question;
+  payload.isBookmarked = isBookmarked;
+
+  res.json({ success: true, data: payload });
 });
 
 exports.updateQuestion = asyncHandler(async (req, res) => {
@@ -89,9 +125,60 @@ exports.deleteQuestion = asyncHandler(async (req, res) => {
   if (!question) throw new ApiError(404, 'Question not found');
   if (question.user.toString() !== req.user._id.toString() && !isAdmin(req.user)) throw new ApiError(403, 'Forbidden');
 
+  const answerIds = await Answer.find({ question: question._id }).distinct('_id');
   await Answer.deleteMany({ question: question._id });
+  await User.updateMany({}, { $pull: { bookmarkedQuestions: question._id, bookmarkedAnswers: { $in: answerIds } } });
   await question.deleteOne();
   res.json({ success: true, message: 'Question deleted' });
+});
+
+exports.toggleBookmarkQuestion = asyncHandler(async (req, res) => {
+  const question = await Question.findById(req.params.id);
+  if (!question) throw new ApiError(404, 'Question not found');
+  if (question.isHidden && !isAdmin(req.user)) throw new ApiError(404, 'Question not found');
+
+  const user = await User.findById(req.user._id);
+  if (!Array.isArray(user.bookmarkedQuestions)) user.bookmarkedQuestions = [];
+  const qid = question._id;
+  const had = user.bookmarkedQuestions.some((id) => id.toString() === qid.toString());
+  let bookmarked;
+  if (had) {
+    user.bookmarkedQuestions.pull(qid);
+    await Question.updateOne({ _id: qid, bookmarkCount: { $gt: 0 } }, { $inc: { bookmarkCount: -1 } });
+    bookmarked = false;
+  } else {
+    user.bookmarkedQuestions.addToSet(qid);
+    await Question.updateOne({ _id: qid }, { $inc: { bookmarkCount: 1 } });
+    bookmarked = true;
+  }
+  await user.save();
+
+  const fresh = await Question.findById(qid).select('bookmarkCount').lean();
+  res.json({ success: true, bookmarked, bookmarkCount: Math.max(0, fresh?.bookmarkCount || 0) });
+});
+
+exports.getMyBookmarkedQuestions = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select('bookmarkedQuestions').lean();
+  const ids = user?.bookmarkedQuestions || [];
+  if (!ids.length) return res.json({ success: true, data: [] });
+
+  const questions = await Question.find({ _id: { $in: ids }, isHidden: false })
+    .populate('user', 'username reputationScore badges avatar')
+    .sort({ createdAt: -1 });
+
+  const idOrder = new Map(ids.map((id, i) => [id.toString(), i]));
+  questions.forEach((q) => {
+    q.voteScore = computeQuestionVoteScore(q);
+  });
+  questions.sort((a, b) => (idOrder.get(b._id.toString()) ?? -1) - (idOrder.get(a._id.toString()) ?? -1));
+
+  const data = questions.map((q) => {
+    const o = q.toObject ? q.toObject() : q;
+    o.isBookmarked = true;
+    return o;
+  });
+
+  res.json({ success: true, data });
 });
 
 exports.voteQuestion = asyncHandler(async (req, res) => {
@@ -132,6 +219,9 @@ exports.voteQuestion = asyncHandler(async (req, res) => {
     }
   }
 
+  question.markModified('upvotes');
+  question.markModified('downvotes');
+  question.voteScore = computeQuestionVoteScore(question);
   await question.save();
   await User.findByIdAndUpdate(question.user, { $inc: { reputationScore: repDelta, 'activityStats.upvotesReceived': upvoteDelta } });
   await User.findByIdAndUpdate(userId, {
@@ -149,12 +239,18 @@ exports.getSimilarQuestions = asyncHandler(async (req, res) => {
 
   const data = await Question.find(
     { $text: { $search: title }, isHidden: false },
-    { score: { $meta: 'textScore' }, title: 1, tags: 1, answerCount: 1, voteScore: 1, viewCount: 1 }
+    { score: { $meta: 'textScore' }, title: 1, tags: 1, answerCount: 1, upvotes: 1, downvotes: 1, viewCount: 1 }
   )
     .sort({ score: { $meta: 'textScore' }, createdAt: -1 })
     .limit(5);
 
-  res.json({ success: true, data });
+  const normalized = data.map((doc) => {
+    const o = doc.toObject ? doc.toObject() : doc;
+    o.voteScore = computeQuestionVoteScore(doc);
+    return o;
+  });
+
+  res.json({ success: true, data: normalized });
 });
 
 exports.getTopContributors = asyncHandler(async (req, res) => {
