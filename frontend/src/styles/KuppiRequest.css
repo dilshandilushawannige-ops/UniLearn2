@@ -1,0 +1,213 @@
+.kuppi-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.kuppi-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #0f172a;
+}
+
+.kuppi-header p {
+  margin-top: 0.25rem;
+  color: #64748b;
+}
+
+.kuppi-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.kuppi-card h2 {
+  margin: 0 0 0.8rem;
+  color: #1e293b;
+}
+
+.kuppi-form,
+.approved-list,
+.table-actions,
+.session-block {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.table-actions {
+  grid-auto-flow: column;
+  justify-content: start;
+}
+
+.kuppi-grid-2 {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.kuppi-page label {
+  display: grid;
+  gap: 0.35rem;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.kuppi-page input,
+.kuppi-page select {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.65rem 0.7rem;
+}
+
+.kuppi-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.5rem 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.kuppi-btn.primary {
+  background: #2563eb;
+  color: #fff;
+}
+
+.kuppi-btn.ok {
+  background: #16a34a;
+  color: #fff;
+}
+
+.kuppi-btn.danger {
+  background: #dc2626;
+  color: #fff;
+}
+
+.kuppi-btn.warn {
+  background: #f59e0b;
+  color: #111827;
+}
+
+.kuppi-btn.link {
+  background: #0f766e;
+  color: #fff;
+  text-decoration: none;
+}
+
+.kuppi-table-wrap {
+  overflow-x: auto;
+}
+
+.kuppi-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+.kuppi-table-wrap th,
+.kuppi-table-wrap td {
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+  padding: 0.55rem 0.45rem;
+  font-size: 0.9rem;
+}
+
+.kuppi-badge {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 0.2rem 0.55rem;
+}
+
+.kuppi-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.kuppi-badge.approved,
+.kuppi-badge.hosted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.kuppi-badge.rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.approved-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.85rem;
+}
+
+.approved-header {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.approved-header h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.kuppi-meta,
+.kuppi-muted {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.kuppi-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+}
+
+.kuppi-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+  padding: 1rem;
+}
+
+.kuppi-modal {
+  width: min(520px, 100%);
+  background: #fff;
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
+  padding: 1rem;
+}
+
+.kuppi-modal h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.kuppi-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .kuppi-btn {
+    width: 100%;
+  }
+
+  .table-actions {
+    grid-auto-flow: row;
+  }
+
+  .kuppi-modal-actions {
+    flex-direction: column-reverse;
+  }
+}

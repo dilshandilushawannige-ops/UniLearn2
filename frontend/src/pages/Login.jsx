@@ -10,8 +10,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const redirectPath = location.state?.from?.pathname || '/user-dashboard';
-
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
@@ -19,7 +17,17 @@ const Login = () => {
     setError('');
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      const data = await login(form.email, form.password);
+      // Redirect based on user role
+      const userRole = data.user?.role;
+      let redirectPath = '/user-dashboard';
+      
+      if (location.state?.from?.pathname) {
+        redirectPath = location.state.from.pathname;
+      } else if (userRole === 'admin') {
+        redirectPath = '/admin-dashboard';
+      }
+      
       navigate(redirectPath, { replace: true });
     } catch (err) {
       setError(err.message);

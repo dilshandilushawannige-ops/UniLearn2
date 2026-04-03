@@ -4,9 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { modulesAPI } from '../api/modules';
 import { studyPlansAPI } from '../api/studyPlans';
 import { resourcesAPI } from '../api/resources';
+import { adminAPI } from '../api/admin';
 
 const DashboardHome = () => {
   const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [selectedYear, setSelectedYear] = useState(user?.currentYear || 3);
   const [selectedSemester, setSelectedSemester] = useState(user?.currentSemester || 2);
   const [modules, setModules] = useState([]);
@@ -14,6 +16,12 @@ const DashboardHome = () => {
   const [recentResources, setRecentResources] = useState([]);
   const [loading, setLoading] = useState(true);
   const [overallProgress, setOverallProgress] = useState(0);
+  const [adminStats, setAdminStats] = useState({
+    totalLiveClasses: 0,
+    totalKuppiRequests: 0,
+    flaggedContentCount: 0,
+    suspendedUsersCount: 0,
+  });
 
   useEffect(() => {
     if (user) {
@@ -24,6 +32,12 @@ const DashboardHome = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+
+      if (isAdmin) {
+        const stats = await adminAPI.getDashboardStats();
+        setAdminStats(stats);
+        return;
+      }
       
       const modulesData = await modulesAPI.getModules({ 
         year: selectedYear, 
@@ -129,6 +143,104 @@ const DashboardHome = () => {
 
   if (loading) {
     return <div className="loading-state">Loading dashboard...</div>;
+  }
+
+  if (isAdmin) {
+    const statCards = [
+      {
+        key: 'live-classes',
+        title: 'Total Live Classes',
+        value: adminStats.totalLiveClasses,
+        icon: '🎓',
+        to: '/user-dashboard/live-class',
+        cta: 'Manage Live Classes',
+      },
+      {
+        key: 'kuppi-requests',
+        title: 'Total Kuppi Requests',
+        value: adminStats.totalKuppiRequests,
+        icon: '📬',
+        to: '/user-dashboard/requests',
+        cta: 'Open Kuppi Requests',
+      },
+      {
+        key: 'flagged-content',
+        title: 'Flagged Content',
+        value: adminStats.flaggedContentCount,
+        icon: '🚩',
+        to: '/user-dashboard/resources',
+        cta: 'Open Moderation',
+      },
+      {
+        key: 'suspended-users',
+        title: 'Suspended Users',
+        value: adminStats.suspendedUsersCount,
+        icon: '⛔',
+        to: '/user-dashboard/resources',
+        cta: 'Review User Actions',
+      },
+    ];
+
+    const quickActions = [
+      {
+        key: 'quick-live',
+        title: 'Manage Live Classes',
+        desc: 'Schedule, edit, cancel, and review attendance.',
+        icon: '📅',
+        to: '/user-dashboard/live-class',
+      },
+      {
+        key: 'quick-kuppi',
+        title: 'Kuppi Requests',
+        desc: 'Approve or reject pending student requests.',
+        icon: '🧾',
+        to: '/user-dashboard/requests',
+      },
+      {
+        key: 'quick-mod',
+        title: 'Moderation',
+        desc: 'Review flagged content and apply actions.',
+        icon: '🛡️',
+        to: '/user-dashboard/resources',
+      },
+    ];
+
+    return (
+      <div className="admin-dashboard-shell">
+        <div className="card admin-header-block">
+          <h2>Admin Dashboard</h2>
+          <p>Overview of live classes, kuppi requests, moderation, and user suspension activity.</p>
+        </div>
+
+        <div className="admin-stats-grid">
+          {statCards.map((card) => (
+            <Link key={card.key} to={card.to} className="admin-stat-card">
+              <div className="admin-stat-top">
+                <p className="admin-stat-title">{card.title}</p>
+                <span className="admin-stat-icon">{card.icon}</span>
+              </div>
+              <h3>{card.value}</h3>
+              <span className="admin-stat-link">{card.cta}</span>
+            </Link>
+          ))}
+        </div>
+
+        <div className="card admin-quick-actions">
+          <h3>Quick Actions</h3>
+          <div className="admin-quick-grid">
+            {quickActions.map((action) => (
+              <Link key={action.key} to={action.to} className="admin-quick-card">
+                <div className="admin-quick-icon">{action.icon}</div>
+                <div className="admin-quick-content">
+                  <h4>{action.title}</h4>
+                  <p>{action.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

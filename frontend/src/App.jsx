@@ -9,12 +9,13 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import DashboardHome from './pages/DashboardHome';
 import DashboardResources from './pages/DashboardResources';
 import DashboardUpload from './pages/DashboardUpload';
 import DashboardStudyPlan from './pages/DashboardStudyPlan';
 import Resources from './pages/Resources';
-import ResourceRequest from './pages/ResourceRequest';
+import KuppiRequest from './pages/KuppiRequest';
 import ResourceDetails from './pages/ResourceDetails';
 import LiveClass from './pages/LiveClass';
 import StudyPlan from './pages/StudyPlan';
@@ -42,13 +43,19 @@ const AppContent = () => {
           <Route path="resources/:id" element={<ResourceDetails />} />
           <Route path="upload" element={<DashboardUpload />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
-          <Route path="requests" element={<ResourceRequest />} />
+          <Route path="requests" element={<KuppiRequest />} />
           <Route path="mcq" element={<MCQ />} />
           <Route path="live-class" element={<LiveClass />} />
           <Route path="games" element={<GameDashboard />} />
           <Route path="games/invite/:studentId" element={<GameInvite />} />
           <Route path="games/battle/:battleId" element={<QuizBattle />} />
         </Route>
+
+        {/* Admin Dashboard */}
+        <Route 
+          path="/admin-dashboard" 
+          element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} 
+        />
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Register />} />
@@ -64,7 +71,7 @@ const AppContent = () => {
         />
         <Route
           path="/resource-request"
-          element={<ProtectedRoute><ResourceRequest /></ProtectedRoute>}
+          element={<ProtectedRoute><KuppiRequest /></ProtectedRoute>}
         />
         <Route
           path="/live-class"
@@ -89,7 +96,7 @@ const App = () => {
   return (
     <AuthProvider>
       <SocketProvider>
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AppContent />
         </BrowserRouter>
       </SocketProvider>
