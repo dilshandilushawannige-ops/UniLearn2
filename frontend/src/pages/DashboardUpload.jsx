@@ -28,7 +28,7 @@ const DashboardUpload = () => {
         ytLink: '',
     });
 
-    const [tags, setTags] = useState(['Architecture', 'Semester 3']);
+    const [tags, setTags] = useState(['Semester 1']);
     const [tagInput, setTagInput] = useState('');
 
     const [file, setFile] = useState(null);
@@ -88,6 +88,14 @@ const DashboardUpload = () => {
         }
         if (form.resourceType === 'lecture_pdf' && !form.lectureNo) {
             return setUploadError('Lecture No is required for lecture_pdf.');
+        }
+
+        if (form.resourceType !== 'yt_link' && !file) {
+            return setUploadError('Please attach and upload a valid file document.');
+        }
+
+        if (form.resourceType === 'yt_link' && !form.ytLink) {
+            return setUploadError('Please provide a valid YouTube link.');
         }
 
         const fd = new FormData();

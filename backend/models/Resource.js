@@ -27,6 +27,8 @@ const resourceSchema = new mongoose.Schema(
     ],
     averageRating: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
+    downloadCount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

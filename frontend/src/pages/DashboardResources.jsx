@@ -101,6 +101,17 @@ const DashboardResources = () => {
 
       const safeTitle = (r.title || 'Document').replace(/[^a-z0-9]/gi, '_');
 
+      // Track the download dynamically on the backend
+      try {
+        await resourcesAPI.recordDownload(r._id);
+        // Optimistically update the UI to show the new download count
+        setResources(prev => prev.map(res =>
+          res._id === r._id ? { ...res, downloadCount: (res.downloadCount || 0) + 1 } : res
+        ));
+      } catch (trackError) {
+        console.error('Failed tracking download:', trackError);
+      }
+
       // If securely fetching from cloudinary, force the browser to trigger a download
       const response = await fetch(r.fileUrl);
       if (!response.ok) throw new Error('Network response was not ok');
@@ -315,7 +326,7 @@ const DashboardResources = () => {
                         navigate(`/user-dashboard/resources/${r._id}`);
                       }
                     }}
-                    style={{ background: 'none', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', transition: 'color 0.2s', cursor: 'pointer', padding: 0 }}
+                    style={{ background: 'none', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s', cursor: 'pointer', padding: 0 }}
                     onMouseOver={e => e.currentTarget.style.color = '#0284c7'}
                     onMouseOut={e => e.currentTarget.style.color = 'inherit'}
                     title="View"
@@ -324,15 +335,17 @@ const DashboardResources = () => {
                       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                       <circle cx="12" cy="12" r="3"></circle>
                     </svg>
+                    <span style={{ fontSize: '0.85rem' }}>{r.viewCount || 0}</span>
                   </button>
 
                   {r.resourceType !== 'yt_link' && r.fileUrl && (
-                    <a href={r.fileUrl} onClick={(e) => handleDownload(e, r)} style={{ color: 'inherit', display: 'flex', alignItems: 'center', transition: 'color 0.2s', cursor: 'pointer' }} onMouseOver={e => e.currentTarget.style.color = '#0284c7'} onMouseOut={e => e.currentTarget.style.color = 'inherit'} title="Download">
+                    <a href={r.fileUrl} onClick={(e) => handleDownload(e, r)} style={{ color: 'inherit', display: 'flex', alignItems: 'center', gap: '4px', transition: 'color 0.2s', cursor: 'pointer', textDecoration: 'none' }} onMouseOver={e => e.currentTarget.style.color = '#0284c7'} onMouseOut={e => e.currentTarget.style.color = 'inherit'} title="Download">
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                       </svg>
+                      <span style={{ fontSize: '0.85rem' }}>{r.downloadCount || 0}</span>
                     </a>
                   )}
                 </div>
