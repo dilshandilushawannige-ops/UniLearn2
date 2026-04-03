@@ -214,19 +214,21 @@ const StackOver = () => {
         <button onClick={runSearch} className="forum-link-btn">Search</button>
       </div>
 
-      <div className="forum-tabs">
-        <button type="button" onClick={() => setListMode('all')} className={`forum-tab ${listMode === 'all' ? 'active' : ''}`}>Browse</button>
-        <button type="button" onClick={() => setListMode('saved-q')} className={`forum-tab ${listMode === 'saved-q' ? 'active' : ''}`}>Saved questions</button>
-        <button type="button" onClick={() => setListMode('saved-a')} className={`forum-tab ${listMode === 'saved-a' ? 'active' : ''}`}>Saved answers</button>
-      </div>
-
-      {listMode === 'all' && (
-        <div className="forum-tabs forum-tabs-row2">
-          <button type="button" onClick={() => setTab('new')} className={`forum-tab ${activeTab === 'new' ? 'active' : ''}`}>Newest</button>
-          <button type="button" onClick={() => setTab('votes')} className={`forum-tab ${activeTab === 'votes' ? 'active' : ''}`}>Most Voted</button>
-          <button type="button" onClick={() => setTab('unanswered')} className={`forum-tab ${activeTab === 'unanswered' ? 'active' : ''}`}>Unanswered</button>
+      <div className="forum-tabs-rail">
+        <div className="forum-tabs forum-tabs-single-line" role="tablist" aria-label="Forum lists and sort">
+          <button type="button" role="tab" onClick={() => setListMode('all')} className={`forum-tab ${listMode === 'all' ? 'active' : ''}`}>Browse</button>
+          <button type="button" role="tab" onClick={() => setListMode('saved-q')} className={`forum-tab ${listMode === 'saved-q' ? 'active' : ''}`}>Saved questions</button>
+          <button type="button" role="tab" onClick={() => setListMode('saved-a')} className={`forum-tab ${listMode === 'saved-a' ? 'active' : ''}`}>Saved answers</button>
+          {listMode === 'all' && (
+            <>
+              <span className="forum-tab-sep" aria-hidden />
+              <button type="button" role="tab" onClick={() => setTab('new')} className={`forum-tab ${activeTab === 'new' ? 'active' : ''}`}>Newest</button>
+              <button type="button" role="tab" onClick={() => setTab('votes')} className={`forum-tab ${activeTab === 'votes' ? 'active' : ''}`}>Most Voted</button>
+              <button type="button" role="tab" onClick={() => setTab('unanswered')} className={`forum-tab ${activeTab === 'unanswered' ? 'active' : ''}`}>Unanswered</button>
+            </>
+          )}
         </div>
-      )}
+      </div>
 
       {showForm && (
         <div className="ask-modal-backdrop" role="dialog" aria-modal="true" onMouseDown={(e) => {
