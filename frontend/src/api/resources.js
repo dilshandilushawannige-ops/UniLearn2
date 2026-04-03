@@ -24,4 +24,8 @@ export const resourcesAPI = {
     const { data } = await api.post(`/resources/${id}/rate`, { rating });
     return data;
   },
+  recordDownload: async (id) => {
+    const { data } = await api.post(`/resources/${id}/download`);
+    return data;
+  },
 };
