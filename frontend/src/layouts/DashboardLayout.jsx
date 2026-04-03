@@ -10,13 +10,25 @@ import uploadIcon from '../assets/upload-icon.png';
 import studyPlanIcon from '../assets/study-plan-icon.png';
 import liveClassIcon from '../assets/live-class-icon.png';
 import mcqIcon from '../assets/mcq-icon.png';
-import requestsIcon from '../assets/requests-icon.png';
 
 // Topbar PNG icons
 import searchIcon from '../assets/search-icon.png';
 import notificationIcon from '../assets/notification-icon.png';
 import gamesIcon from '../assets/games-icon.png';
 
+
+const QnaIcon = () => (
+  <div style={{
+    width: '24px',
+    height: '24px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '16px'
+  }}>
+    💬
+  </div>
+);
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -70,9 +82,13 @@ const DashboardLayout = () => {
             <img src={gamesIcon} alt="Games" className="nav-icon-img" />
             Games
           </Link>
-          <Link to="/user-dashboard/requests" className={`nav-item ${isActive('/user-dashboard/requests') ? 'active' : ''}`}>
-            <img src={requestsIcon} alt="Requests" className="nav-icon-img" />
-            Requests
+          <Link to="/user-dashboard/questions" className={`nav-item ${isActive('/user-dashboard/questions') ? 'active' : ''}`}>
+            <QnaIcon />
+            Stack Overflow
+          </Link>
+          <Link to="/user-dashboard/top-contributors" className={`nav-item ${isActive('/user-dashboard/top-contributors') ? 'active' : ''}`}>
+            <span style={{ fontSize: 18, marginRight: 6 }}>🏆</span>
+            Top Contributors
           </Link>
         </nav>
 
