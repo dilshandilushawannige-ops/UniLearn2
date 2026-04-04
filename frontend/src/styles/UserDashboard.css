@@ -336,6 +336,11 @@
   flex-direction: column;
 }
 
+/* Match MCQ / Stack Overflow forum page background full-width */
+.dashboard-main:has(.forum-shell) {
+  background: #f8f9fd;
+}
+
 /* Header */
 .dashboard-header {
   background: white;

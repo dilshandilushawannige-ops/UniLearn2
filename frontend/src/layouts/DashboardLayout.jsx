@@ -17,20 +17,8 @@ import searchIcon from '../assets/search-icon.png';
 import notificationIcon from '../assets/notification-icon.png';
 import gamesIcon from '../assets/games-icon.png';
 import requestsIcon from '../assets/requests-icon.png';
-
-
-const QnaIcon = () => (
-  <div style={{
-    width: '24px',
-    height: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '16px'
-  }}>
-    💬
-  </div>
-);
+import topContributorsIcon from '../assets/star-icon.png';
+import stackOverflowNavIcon from '../assets/docs-icon.png';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -210,11 +198,11 @@ const DashboardLayout = () => {
                 Requests
               </Link>
               <Link to="/user-dashboard/questions" className={`nav-item ${isActive('/user-dashboard/questions') ? 'active' : ''}`}>
-                <QnaIcon />
+                <img src={stackOverflowNavIcon} alt="" className="nav-icon-img" />
                 Stack Overflow
               </Link>
               <Link to="/user-dashboard/top-contributors" className={`nav-item ${isActive('/user-dashboard/top-contributors') ? 'active' : ''}`}>
-                <span style={{ fontSize: 18, marginRight: 6 }}>🏆</span>
+                <img src={topContributorsIcon} alt="" className="nav-icon-img" />
                 Top Contributors
               </Link>
             </>
