@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { gamesAPI } from '../api/games';
+import { getMyRank } from '../api/leaderboard';
 import InviteNotification from '../components/InviteNotification';
 import BattleToast from '../components/BattleToast';
 import BattleReadyModal from '../components/BattleReadyModal';
@@ -17,6 +18,7 @@ const GameDashboard = () => {
   const [activeInvites, setActiveInvites] = useState([]);
   const [battleHistory, setBattleHistory] = useState([]);
   const [stats, setStats] = useState(null);
+  const [myRank, setMyRank] = useState(null);
   const [incomingInvite, setIncomingInvite] = useState(null);
   const [generatingBattle, setGeneratingBattle] = useState(null);
   const [battleReady, setBattleReady] = useState(null);
@@ -24,7 +26,17 @@ const GameDashboard = () => {
   // Fetch initial data
   useEffect(() => {
     fetchGameData();
+    fetchMyRank();
   }, []);
+
+  const fetchMyRank = async () => {
+    try {
+      const rankData = await getMyRank();
+      setMyRank(rankData);
+    } catch (error) {
+      console.error('Error fetching rank:', error);
+    }
+  };
 
   // Socket event listeners
   useEffect(() => {
@@ -172,38 +184,64 @@ const GameDashboard = () => {
 
       {/* Hero Header */}
       <div className="game-hero">
-        <div className="hero-badge">GAMER PROFILE: YEAR {user?.currentYear}, SEM {user?.currentSemester}</div>
-        <h1 className="hero-title">
-          Quiz Battle: <span className="hero-highlight">Prove Your Knowledge</span>
-        </h1>
-        <p className="hero-description">
-          Challenge your peers from Year {user?.currentYear} Semester {user?.currentSemester} to real-time academic duels. 
-          Enhance your retention while climbing the global leaderboard.
-        </p>
+        <div className="hero-left-section">
+          <div className="hero-badge">GAMER PROFILE: YEAR {user?.currentYear}, SEM {user?.currentSemester}</div>
+          <h1 className="hero-title">
+            Quiz Battle: <span className="hero-highlight-blue">Prove Your</span><br/><span className="hero-highlight-purple">Knowledge</span>
+          </h1>
+          <p className="hero-description">
+            Challenge your peers from Year {user?.currentYear} Semester {user?.currentSemester} to real-time<br/>
+            academic duels. Enhance your retention while climbing the global<br/>
+            leaderboard.
+          </p>
 
-        {!connected && (
-          <div className="connection-warning">
-            ⚠️ Connecting to game server...
-          </div>
-        )}
+          {!connected && (
+            <div className="connection-warning">
+              ⚠️ Connecting to game server...
+            </div>
+          )}
+        </div>
 
-        {/* Stats Cards */}
-        {stats && (
-          <div className="hero-stats">
-            <div className="hero-stat">
-              <div className="stat-label">RANK</div>
-              <div className="stat-value rank">#12</div>
+        <div className="hero-right-section">
+          <Link to="/user-dashboard/games/leaderboard" className="lb-shortcut-card">
+            <div className="lb-icon-wrapper">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 20V10M12 20V4M6 20v-6"></path>
+              </svg>
             </div>
-            <div className="hero-stat">
-              <div className="stat-label">WIN RATE</div>
-              <div className="stat-value winrate">{stats.winRate}%</div>
+            <div className="lb-shortcut-text">
+              <span className="lb-shortcut-label">COMPETITION</span>
+              <span className="lb-shortcut-title">View Global<br/>Leaderboard</span>
             </div>
-            <div className="hero-stat">
-              <div className="stat-label">TOTAL BATTLES</div>
-              <div className="stat-value total">{stats.totalBattles}</div>
+            <div className="lb-shortcut-arrow">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
             </div>
-          </div>
-        )}
+          </Link>
+
+          {/* Stats Row */}
+          {stats && (
+            <div className="hero-stats-row">
+              <div className="hero-stat-block">
+                <span className="stat-label">RANK</span>
+                <span className="stat-value blue-text">
+                  {myRank && myRank.rank ? `#${myRank.rank}` : 'N/A'}
+                </span>
+              </div>
+              <div className="stat-divider"></div>
+              <div className="hero-stat-block">
+                <span className="stat-label">WIN RATE</span>
+                <span className="stat-value purple-text">{stats.winRate}%</span>
+              </div>
+              <div className="stat-divider"></div>
+              <div className="hero-stat-block">
+                <span className="stat-label">TOTAL BATTLES</span>
+                <span className="stat-value orange-text">{stats.totalBattles}</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="game-content">

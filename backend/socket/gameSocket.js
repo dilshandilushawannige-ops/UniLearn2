@@ -409,6 +409,26 @@ const initGameSocket = (io) => {
         battle.winner = winningPlayer._id;
         await battle.save();
 
+        // Update game stats for both players
+        try {
+          const player1 = await User.findById(battle.player1._id);
+          const player2 = await User.findById(battle.player2._id);
+
+          if (player1) {
+            const isWin = battle.winner.toString() === player1._id.toString();
+            player1.updateGameStats(isWin, false);
+            await player1.save();
+          }
+
+          if (player2) {
+            const isWin = battle.winner.toString() === player2._id.toString();
+            player2.updateGameStats(isWin, false);
+            await player2.save();
+          }
+        } catch (error) {
+          console.error('Error updating game stats after surrender:', error);
+        }
+
         // Notify both players
         io.to(`battle:${battleId}`).emit('battle:surrendered', {
           battleId: battle._id,
@@ -528,6 +548,28 @@ async function moveToNextQuestion(io, battle) {
     // else it's a draw (winner remains null)
 
     await battle.save();
+
+    // Update user game stats for both players
+    try {
+      const player1 = await User.findById(battle.player1);
+      const player2 = await User.findById(battle.player2);
+
+      if (player1) {
+        const isWin = battle.winner && battle.winner.toString() === player1._id.toString();
+        const isDraw = !battle.winner;
+        player1.updateGameStats(isWin, isDraw);
+        await player1.save();
+      }
+
+      if (player2) {
+        const isWin = battle.winner && battle.winner.toString() === player2._id.toString();
+        const isDraw = !battle.winner;
+        player2.updateGameStats(isWin, isDraw);
+        await player2.save();
+      }
+    } catch (error) {
+      console.error('Error updating game stats:', error);
+    }
 
     // Populate winner info
     await battle.populate('winner', 'username email');

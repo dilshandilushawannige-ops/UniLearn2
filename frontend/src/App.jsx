@@ -26,6 +26,7 @@ import MCQ from './pages/MCQ';
 import GameDashboard from './pages/GameDashboard';
 import GameInvite from './pages/GameInvite';
 import QuizBattle from './pages/QuizBattle';
+import Leaderboard from './pages/Leaderboard';
 import StackOver from './pages/StackOver';
 import QuestionDetails from './pages/QuestionDetails';
 import TopContributors from './pages/TopContributors';
@@ -62,6 +63,7 @@ const AppContent = () => {
           <Route path="games" element={<GameDashboard />} />
           <Route path="games/invite/:studentId" element={<GameInvite />} />
           <Route path="games/battle/:battleId" element={<QuizBattle />} />
+          <Route path="games/leaderboard" element={<Leaderboard />} />
         </Route>
 
         {/* Admin Dashboard */}
