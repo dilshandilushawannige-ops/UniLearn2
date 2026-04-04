@@ -15,10 +15,10 @@ const upload = require('../middleware/upload');
 router.post('/', protect, upload.single('file'), createResource);
 
 // GET /api/resources?year=&semester=&moduleCode=&resourceType=
-router.get('/', getResources);
+router.get('/', protect, getResources);
 
 // GET /api/resources/:id
-router.get('/:id', getResourceById);
+router.get('/:id', protect, getResourceById);
 
 // POST /api/resources/:id/rate
 router.post('/:id/rate', protect, rateResource);

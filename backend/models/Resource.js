@@ -27,8 +27,20 @@ const resourceSchema = new mongoose.Schema(
     ],
     averageRating: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
+    
+    moderation: {
+      reportCount: { type: Number, default: 0, min: 0 },
+      status: {
+        type: String,
+        enum: ['normal', 'flagged', 'auto_hidden'],
+        default: 'normal',
+      },
+      isHiddenFromStudents: { type: Boolean, default: false },
+    },
+
     viewCount: { type: Number, default: 0 },
     downloadCount: { type: Number, default: 0 },
+
   },
   { timestamps: true }
 );
