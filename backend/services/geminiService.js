@@ -35,16 +35,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
  * Handles code fences like ```json ... ``` or bare JSON.
  */
 const extractJSON = (text) => {
-  try { return JSON.parse(text.trim()); } catch (_) {}
+  try { return JSON.parse(text.trim()); } catch (_) { }
 
   const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenceMatch) {
-    try { return JSON.parse(fenceMatch[1].trim()); } catch (_) {}
+    try { return JSON.parse(fenceMatch[1].trim()); } catch (_) { }
   }
 
   const braceMatch = text.match(/(\{[\s\S]*\}|\[[\s\S]*\])/);
   if (braceMatch) {
-    try { return JSON.parse(braceMatch[1].trim()); } catch (_) {}
+    try { return JSON.parse(braceMatch[1].trim()); } catch (_) { }
   }
 
   throw new Error('Could not extract valid JSON from AI response');
@@ -54,7 +54,20 @@ const extractJSON = (text) => {
 const isCapacityError = (err) => {
   const status = err?.status ?? err?.response?.status;
   const msg = (err?.message || '').toLowerCase();
-  return status === 429 || status === 503 || status === 404 || status === 500 ||
+  const errorDetails = err?.error?.message?.toLowerCase() || '';
+  
+  // Check if it's a response_format error
+  if (errorDetails.includes('response_format') || msg.includes('response_format')) {
+    return true;
+  }
+  
+  // Check if it's a token limit error
+  if (errorDetails.includes('max_tokens') || errorDetails.includes('max_completion_tokens') || 
+      msg.includes('max_tokens') || msg.includes('token limit')) {
+    return true;
+  }
+  
+  return status === 429 || status === 503 || status === 404 || status === 500 || status === 400 ||
     msg.includes('429') || msg.includes('503') || msg.includes('rate limit') ||
     msg.includes('capacity') || msg.includes('no endpoints') || msg.includes('overloaded') ||
     msg.includes('unavailable') || msg.includes('choices');
@@ -65,8 +78,9 @@ const isCapacityError = (err) => {
  * Retries the winning model once with a stricter JSON prompt if parsing fails.
  * @param {string} prompt - user prompt
  * @param {boolean} jsonMode - add system message enforcing JSON-only output
+ * @param {number} maxTokens - maximum tokens to generate (default: 8000)
  */
-const callAI = async (prompt, jsonMode = true) => {
+const callAI = async (prompt, jsonMode = true, maxTokens = 8000) => {
   const messages = [];
   if (jsonMode) {
     messages.push({
@@ -82,9 +96,17 @@ const callAI = async (prompt, jsonMode = true) => {
     try {
       console.log(`[AI] Trying model: ${model}`);
 
-      const requestPayload = { model, messages };
-      // Some models support response_format — add it opportunistically
-      try { requestPayload.response_format = { type: 'json_object' }; } catch (_) {}
+      const requestPayload = { 
+        model, 
+        messages,
+        max_tokens: maxTokens // Add token limit to prevent exceeding provider limits
+      };
+      
+      // Only add response_format for models that support it (OpenAI models)
+      // Free models on OpenRouter typically don't support this parameter
+      if (model.includes('openai') || model.includes('gpt')) {
+        requestPayload.response_format = { type: 'json_object' };
+      }
 
       let completion = await openrouter.chat.completions.create(requestPayload);
 
@@ -107,7 +129,11 @@ const callAI = async (prompt, jsonMode = true) => {
           { role: 'assistant', content: text },
           { role: 'user', content: 'Your previous response was not valid JSON. Output ONLY the raw JSON object now, starting with { and ending with }. No other text.' },
         ];
-        completion = await openrouter.chat.completions.create({ model, messages: retryMessages });
+        completion = await openrouter.chat.completions.create({ 
+          model, 
+          messages: retryMessages,
+          max_tokens: maxTokens 
+        });
         text = completion?.choices?.[0]?.message?.content;
         if (!text || !text.trim()) {
           console.warn(`[AI] Model ${model} returned empty JSON retry, trying next…`);
@@ -234,8 +260,7 @@ const generateMCQs = async (moduleCode, lectures, numQuestions = 10) => {
   const lectureContent = lectures
     .map(
       (l) =>
-        `=== LECTURE ${l.lectureNo}${l.lectureTitle ? ': ' + l.lectureTitle : ''} ===\n${
-          l.text.trim() || '[No text extracted for this lecture]'
+        `=== LECTURE ${l.lectureNo}${l.lectureTitle ? ': ' + l.lectureTitle : ''} ===\n${l.text.trim() || '[No text extracted for this lecture]'
         }`
     )
     .join('\n\n');
@@ -317,5 +342,28 @@ INSTRUCTIONS:
   return callAI(prompt);
 };
 
-module.exports = { generateStudyPlan, generateMCQs, generateDaySummary };
+const generateResourceSummary = async (contentBlock) => {
+  const prompt = `You are an expert academic assistant helping students quickly digest lecture materials.
+Read the following extracted text from a university lecture/resource and provide a highly useful, structured summary (around 300 to 500 words).
+Focus on key theories, core concepts, formulas (if any), and critical definitions.
+Use proper formatting like headings and bullet points.
+Make it easy to read and revise for exams.
+If the text is very short or unreadable, just say "The provided content does not contain enough text for a comprehensive summary."
+
+CONTENT:
+---
+${contentBlock}
+---
+
+INSTRUCTIONS:
+Respond with ONLY valid JSON strictly matching this format:
+{
+  "summary": "Full formatted comprehensive summary here..."
+}`;
+
+  const response = await callAI(prompt);
+  return response ? response.summary : "";
+};
+
+module.exports = { generateStudyPlan, generateMCQs, generateDaySummary, generateResourceSummary };
 

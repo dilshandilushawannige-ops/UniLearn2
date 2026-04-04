@@ -1,0 +1,129 @@
+/* Battle Toast Notification - Top Right Corner */
+.battle-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 360px;
+  max-width: 450px;
+  z-index: 9999;
+  animation: slideInRight 0.3s ease-out;
+  border: 2px solid rgba(102, 126, 234, 0.3);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.battle-toast-generating {
+  border-left: 4px solid #667eea;
+}
+
+.battle-toast-ready {
+  border-left: 4px solid #27ae60;
+}
+
+.battle-toast-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.battle-toast-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+}
+
+.toast-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(102, 126, 234, 0.2);
+  border-top: 3px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.battle-toast-text {
+  flex: 1;
+}
+
+.battle-toast-message {
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.battle-toast-submessage {
+  font-size: 0.875rem;
+  color: #5a6c7d;
+  line-height: 1.5;
+}
+
+.battle-toast-close {
+  background: none;
+  border: none;
+  font-size: 1.75rem;
+  color: #95a5a6;
+  cursor: pointer;
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.battle-toast-close:hover {
+  background: rgba(102, 126, 234, 0.1);
+  color: #2c3e50;
+}
+
+/* Mobile Responsive */
+@media (max-width: 640px) {
+  .battle-toast {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    min-width: auto;
+    max-width: none;
+    padding: 1rem 1.25rem;
+  }
+
+  .battle-toast-message {
+    font-size: 0.95rem;
+  }
+
+  .battle-toast-submessage {
+    font-size: 0.8rem;
+  }
+}

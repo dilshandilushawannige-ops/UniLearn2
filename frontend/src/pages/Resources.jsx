@@ -79,7 +79,7 @@ const Resources = () => {
 
   // ── Fetch modules when filter year/sem changes ─────────────────────────────
   useEffect(() => {
-    modulesAPI.getModules({ year: filterYear, semester: filterSem }).then(setModules).catch(() => {});
+    modulesAPI.getModules({ year: filterYear, semester: filterSem }).then(setModules).catch(() => { });
   }, [filterYear, filterSem]);
 
   // ── Fetch resources on filter change ──────────────────────────────────────
@@ -136,9 +136,18 @@ const Resources = () => {
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
         <div>
-        <h1 style={{ fontSize: '2.5rem', fontWeight: '800', margin: 0, color: '#1a1f36', marginBottom: '0.25rem' }}>Learning Resources</h1>
-        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0, marginBottom: '2.5rem' }}>Manage and discover {resources.length} curated academic materials.</p>
-      </div>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Learning Resources
+          </h1>
+          <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0, marginBottom: '2.5rem' }}>Manage and discover {resources.length} curated academic materials.</p>
+        </div>
         <button className="btn btn-primary btn-sm" onClick={() => setShowForm(!showForm)}>
           {showForm ? 'Hide Form' : '+ Upload Resource'}
         </button>
@@ -159,7 +168,7 @@ const Resources = () => {
               <div className="form-group">
                 <label>Year *</label>
                 <select value={form.year} onChange={e => setForm({ ...form, year: Number(e.target.value), moduleCode: '' })}>
-                  {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
+                  {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
                 </select>
               </div>
               <div className="form-group">
@@ -205,7 +214,7 @@ const Resources = () => {
               </div>
             ) : (
               <div className="form-group">
-                <label>File (PDF) {['lecture_pdf','short_note','past_paper'].includes(form.resourceType) ? '*' : '(optional)'}</label>
+                <label>File (PDF) {['lecture_pdf', 'short_note', 'past_paper'].includes(form.resourceType) ? '*' : '(optional)'}</label>
                 <input type="file" accept=".pdf,application/pdf" onChange={e => setFile(e.target.files[0])} />
               </div>
             )}
@@ -221,7 +230,7 @@ const Resources = () => {
         <div className="form-group">
           <label>Year</label>
           <select value={filterYear} onChange={e => { setFilterYear(Number(e.target.value)); setFilterModule(''); }}>
-            {[1,2,3,4].map(y => <option key={y} value={y}>Year {y}</option>)}
+            {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
           </select>
         </div>
         <div className="form-group">
@@ -259,7 +268,7 @@ const Resources = () => {
             <div style={{ marginBottom: '0.3rem' }}>
               <span className={`resource-tag ${r.resourceType}`}>{r.resourceType}</span>
               <strong>{r.title}</strong>
-              {r.lectureNo && <span style={{ color: '#6b7280', fontSize:'0.85rem', marginLeft:'0.5rem' }}>Lecture {r.lectureNo}</span>}
+              {r.lectureNo && <span style={{ color: '#6b7280', fontSize: '0.85rem', marginLeft: '0.5rem' }}>Lecture {r.lectureNo}</span>}
             </div>
             <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
               {r.moduleCode} · Year {r.year} Sem {r.semester} · by {r.uploader?.username || 'Unknown'}

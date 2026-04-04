@@ -151,17 +151,13 @@ const UserDashboard = () => {
             <span className="nav-icon">📚</span>
             Resources
           </Link>
-          <Link to="/resource-request" className="nav-item">
+          <Link to="/user-dashboard/upload" className="nav-item">
             <span className="nav-icon">📤</span>
             Upload Resource
           </Link>
           <Link to="/study-plan" className="nav-item">
             <span className="nav-icon">📅</span>
             Study Plans
-          </Link>
-          <Link to="/resource-request" className="nav-item">
-            <span className="nav-icon">📝</span>
-            Requests
           </Link>
           <Link to="/mcq" className="nav-item">
             <span className="nav-icon">✅</span>

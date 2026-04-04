@@ -40,4 +40,23 @@ const protect = asyncHandler(async (req, _res, next) => {
   next();
 });
 
-module.exports = { protect };
+/** Sets req.user when a valid Bearer token is present; otherwise req.user is null. Never sends 401. */
+const optionalProtect = asyncHandler(async (req, _res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = await User.findById(decoded.id).select('-password');
+  } catch (_err) {
+    req.user = null;
+  }
+  next();
+});
+
+module.exports = { protect, optionalProtect };

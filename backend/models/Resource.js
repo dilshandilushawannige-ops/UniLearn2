@@ -17,6 +17,7 @@ const resourceSchema = new mongoose.Schema(
     fileUrl: { type: String, default: '' },
     filePublicId: { type: String, default: '' },
     extractedText: { type: String, default: '' },
+    summary: { type: String, default: '' },
     ytLink: { type: String, default: '' },
     ratings: [
       {
@@ -26,6 +27,7 @@ const resourceSchema = new mongoose.Schema(
     ],
     averageRating: { type: Number, default: 0 },
     ratingCount: { type: Number, default: 0 },
+    
     moderation: {
       reportCount: { type: Number, default: 0, min: 0 },
       status: {
@@ -35,6 +37,10 @@ const resourceSchema = new mongoose.Schema(
       },
       isHiddenFromStudents: { type: Boolean, default: false },
     },
+
+    viewCount: { type: Number, default: 0 },
+    downloadCount: { type: Number, default: 0 },
+
   },
   { timestamps: true }
 );

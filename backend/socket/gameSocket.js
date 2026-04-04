@@ -120,18 +120,35 @@ const initGameSocket = (io) => {
 
     socket.on('invite:accepted', async (data) => {
       try {
-        const { inviteId, battleId } = data;
+        const { inviteId } = data;
         const invite = await GameInvite.findById(inviteId).populate('fromUser toUser');
 
         if (!invite) return;
 
         const senderInfo = onlineUsers.get(invite.fromUser._id.toString());
+        const receiverInfo = onlineUsers.get(invite.toUser._id.toString());
+
+        // Notify sender that invite was accepted
         if (senderInfo) {
           io.to(senderInfo.socketId).emit('invite:accepted', {
             inviteId,
-            battleId,
             acceptedBy: invite.toUser.username,
           });
+        }
+
+        // Notify both players that battle is generating
+        const generatingData = {
+          inviteId,
+          moduleCode: invite.moduleCode,
+          lectureStart: invite.lectureStart,
+          lectureEnd: invite.lectureEnd,
+        };
+
+        if (senderInfo) {
+          io.to(senderInfo.socketId).emit('battle:generating', generatingData);
+        }
+        if (receiverInfo) {
+          io.to(receiverInfo.socketId).emit('battle:generating', generatingData);
         }
 
         // Update both users' status to in_game
@@ -349,6 +366,79 @@ const initGameSocket = (io) => {
       }
     });
 
+    socket.on('battle:reaction', (data) => {
+      try {
+        const { battleId, emoji } = data;
+        
+        // Broadcast reaction to the other player in the battle room
+        socket.to(`battle:${battleId}`).emit('battle:reaction_received', {
+          emoji,
+          playerId: userId,
+          timestamp: Date.now(),
+        });
+      } catch (error) {
+        console.error('Error handling reaction:', error);
+      }
+    });
+
+    socket.on('battle:surrender', async (data) => {
+      try {
+        const { battleId } = data;
+        const battle = await QuizBattle.findById(battleId).populate('player1 player2', 'username email');
+
+        if (!battle || battle.status !== 'active') {
+          socket.emit('battle:error', { message: 'Battle not found or already finished' });
+          return;
+        }
+
+        const isPlayer1 = battle.player1._id.toString() === userId;
+        const isPlayer2 = battle.player2._id.toString() === userId;
+
+        if (!isPlayer1 && !isPlayer2) {
+          socket.emit('battle:error', { message: 'Not authorized' });
+          return;
+        }
+
+        // Determine winner (the player who didn't surrender)
+        const surrenderingPlayer = isPlayer1 ? battle.player1 : battle.player2;
+        const winningPlayer = isPlayer1 ? battle.player2 : battle.player1;
+
+        // Update battle status
+        battle.status = 'finished';
+        battle.finishedAt = new Date();
+        battle.winner = winningPlayer._id;
+        await battle.save();
+
+        // Notify both players
+        io.to(`battle:${battleId}`).emit('battle:surrendered', {
+          battleId: battle._id,
+          surrenderedBy: {
+            _id: surrenderingPlayer._id,
+            username: surrenderingPlayer.username,
+          },
+          winner: {
+            _id: winningPlayer._id,
+            username: winningPlayer.username,
+          },
+          player1Score: battle.player1Score,
+          player2Score: battle.player2Score,
+        });
+
+        // Update user statuses back to online
+        updateUserStatus(battle.player1._id.toString(), 'online');
+        updateUserStatus(battle.player2._id.toString(), 'online');
+
+        // Clean up active battle
+        activeBattles.delete(battle._id.toString());
+
+        // Broadcast updated online users
+        broadcastOnlineUsers(io, battle.player1.currentYear, battle.player1.currentSemester);
+      } catch (error) {
+        console.error('Error handling surrender:', error);
+        socket.emit('battle:error', { message: 'Failed to surrender' });
+      }
+    });
+
     // ─── DISCONNECT ───────────────────────────────────────────────────────────
 
     socket.on('disconnect', () => {
@@ -463,4 +553,4 @@ async function moveToNextQuestion(io, battle) {
   }
 }
 
-module.exports = { initGameSocket };
+module.exports = { initGameSocket, getOnlineUsers: () => onlineUsers };
