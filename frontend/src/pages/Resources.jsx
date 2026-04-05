@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { resourcesAPI } from '../api/resources';
 import { modulesAPI } from '../api/modules';
 import { useAuth } from '../context/AuthContext';
@@ -290,7 +291,7 @@ const Resources = () => {
         </div>
       ))}
 
-      {ratingModalOpen && (
+      {ratingModalOpen && createPortal(
         <div className="rating-modal-overlay" onClick={() => setRatingModalOpen(false)}>
           <div className="rating-modal-content" onClick={e => e.stopPropagation()}>
             <button className="rating-modal-close" onClick={() => setRatingModalOpen(false)}>&times;</button>
@@ -316,7 +317,8 @@ const Resources = () => {
               {submittingRating ? 'Submitting...' : 'Submit Rating'}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

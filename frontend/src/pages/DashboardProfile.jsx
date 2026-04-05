@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useCallback } from 'react';
+﻿import React, { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { resourcesAPI } from '../api/resources';
 import { modulesAPI } from '../api/modules';
 import { useAuth } from '../context/AuthContext';
+import Swal from 'sweetalert2';
 
 const getResourceIcon = (type) => {
   switch (type) {
@@ -80,12 +82,33 @@ const DashboardProfile = () => {
   }, [fetchMyResources]);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this resource?")) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "Do you really want to delete this resource? You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
       try {
         await resourcesAPI.deleteResource(id);
         setResources(prev => prev.filter(r => r._id !== id));
+        Swal.fire({
+          title: 'Deleted!',
+          text: 'Your resource has been deleted.',
+          icon: 'success',
+          confirmButtonColor: '#16a34a'
+        });
       } catch (err) {
-        alert("Failed to delete resource: " + err.message);
+        Swal.fire({
+          title: 'Error!',
+          text: 'Failed to delete resource: ' + err.message,
+          icon: 'error',
+          confirmButtonColor: '#dc2626'
+        });
       }
     }
   };
@@ -218,7 +241,7 @@ const DashboardProfile = () => {
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '4px', verticalAlign: 'middle' }}>
                     <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
                   </svg>
-                  {r.moduleCode} · Year {r.year} Sem {r.semester}
+                  {r.moduleCode} Â· Year {r.year} Sem {r.semester}
                 </p>
                 {r.lectureTitle && <p className="resource-lecture-title">{r.lectureTitle}</p>}
 
@@ -238,21 +261,19 @@ const DashboardProfile = () => {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button onClick={() => handleUpdate(r)} style={{ cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: '#16a34a', border: '1px solid #16a34a', borderRadius: '4px', backgroundColor: 'transparent', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <button onClick={() => handleUpdate(r)} title="Edit" style={{ cursor: 'pointer', padding: '0.4rem', fontSize: '0.7rem', color: '#16a34a', border: '1px solid #16a34a', borderRadius: '4px', backgroundColor: 'transparent', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
-                        Edit
                       </button>
-                      <button onClick={() => handleDelete(r._id)} style={{ cursor: 'pointer', padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: '#dc2626', border: '1px solid #dc2626', borderRadius: '4px', backgroundColor: 'transparent', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <button onClick={() => handleDelete(r._id)} title="Delete" style={{ cursor: 'pointer', padding: '0.4rem', fontSize: '0.7rem', color: '#dc2626', border: '1px solid #dc2626', borderRadius: '4px', backgroundColor: 'transparent', fontWeight: '600', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="3 6 5 6 21 6"></polyline>
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                           <line x1="10" y1="11" x2="10" y2="17"></line>
                           <line x1="14" y1="11" x2="14" y2="17"></line>
                         </svg>
-                        Delete
                       </button>
                     </div>
 
@@ -284,7 +305,7 @@ const DashboardProfile = () => {
       )}
 
       {/* Edit Modal Overlay */}
-      {editResource && (
+      {editResource && createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <form style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }} onSubmit={handleEditSubmit}>
             <h3 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#1e293b' }}>Edit Resource</h3>
@@ -320,10 +341,12 @@ const DashboardProfile = () => {
               <button type="submit" style={{ padding: '0.75rem 1.5rem', borderRadius: '6px', border: 'none', backgroundColor: '#1d4ed8', color: '#fff', cursor: 'pointer', fontWeight: '600' }}>Save Changes</button>
             </div>
           </form>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
 };
 
 export default DashboardProfile;
+

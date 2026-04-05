@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams, useOutletContext, useNavigate } from 'react-router-dom';
 import { resourcesAPI } from '../api/resources';
 import { modulesAPI } from '../api/modules';
@@ -319,7 +320,7 @@ const DashboardResources = () => {
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
                 </svg>
-                {r.moduleCode} · Year {r.year} Sem {r.semester}
+                {r.moduleCode} � Year {r.year} Sem {r.semester}
               </p>
               {r.lectureTitle && <p className="resource-lecture-title">{r.lectureTitle}</p>}
 
@@ -525,7 +526,7 @@ const DashboardResources = () => {
         onSubmit={handleReportSubmit}
       />
 
-      {ratingModalOpen && (
+      {ratingModalOpen && createPortal(
         <div className="rating-modal-overlay" onClick={() => setRatingModalOpen(false)}>
           <div className="rating-modal-content" onClick={e => e.stopPropagation()}>
             <button className="rating-modal-close" onClick={() => setRatingModalOpen(false)}>&times;</button>
@@ -551,7 +552,8 @@ const DashboardResources = () => {
               {submittingRating ? 'Submitting...' : 'Submit Rating'}
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

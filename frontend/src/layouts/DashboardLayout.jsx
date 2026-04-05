@@ -24,7 +24,7 @@ const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-   const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotificationMenu, setShowNotificationMenu] = useState(false);
@@ -42,8 +42,10 @@ const DashboardLayout = () => {
   const isActive = (path) => location.pathname === path;
 
   const handleLogout = () => {
-    logout();
-    navigate('/login');
+    navigate('/dashboard', { replace: true });
+    setTimeout(() => {
+      logout();
+    }, 100);
   };
 
   const fetchNotifications = async () => {

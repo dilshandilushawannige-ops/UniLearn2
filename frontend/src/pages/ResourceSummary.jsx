@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { resourcesAPI } from '../api/resources';
 
@@ -74,15 +74,15 @@ const ResourceSummary = () => {
 
     return (
         <div>
-            {/* Breadcrumb Navigation */}
-            <nav style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#64748b' }}>
+            {/* Breadcrumb Navigation - File Path Style */}
+            <nav style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem', color: '#64748b' }}>
                 <Link to="/user-dashboard" style={{ color: '#64748b', textDecoration: 'none' }}>Dashboard</Link>
-                <span style={{ margin: '0 0.5rem' }}>›</span>
+                <span style={{ color: '#cbd5e1' }}>/</span>
                 <Link to="/user-dashboard/resources" style={{ color: '#64748b', textDecoration: 'none' }}>Resources</Link>
-                <span style={{ margin: '0 0.5rem' }}>›</span>
-                <Link to={`/user-dashboard/resources/${id}`} style={{ color: '#64748b', textDecoration: 'none' }}>Resource details</Link>
-                <span style={{ margin: '0 0.5rem' }}>›</span>
-                <span style={{ color: '#0f172a', fontWeight: '600' }}>View Summary</span>
+                <span style={{ color: '#cbd5e1' }}>/</span>
+                <Link to={`/user-dashboard/resources/${id}`} style={{ color: '#64748b', textDecoration: 'none' }}>{resource?.title || 'Resource details'}</Link>
+                <span style={{ color: '#cbd5e1' }}>/</span>
+                <span style={{ color: '#0f172a', fontWeight: '500' }}>View Summary</span>
             </nav>
 
             <div style={{ backgroundColor: 'white', padding: '2.5rem', borderRadius: '12px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)' }}>
@@ -103,18 +103,6 @@ const ResourceSummary = () => {
                         </p>
                     </div>
                     <div style={{ display: 'flex', gap: '1rem' }}>
-                        <button
-                            onClick={() => navigate(`/user-dashboard/resources/${id}`)}
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
-                            onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#e2e8f0'; }}
-                            onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#f1f5f9'; }}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                            Back
-                        </button>
                         <button
                             onClick={handleDownloadPDF}
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}
