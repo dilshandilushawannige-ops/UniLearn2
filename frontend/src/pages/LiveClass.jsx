@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { liveClassesAPI } from '../api/liveClasses';
+import { modulesAPI } from '../api/modules';
 import { moderationAPI } from '../api/moderation';
 import ModerationReportModal from '../components/ModerationReportModal';
 import toast from 'react-hot-toast';
@@ -77,6 +78,7 @@ const LiveClass = () => {
   const [semester, setSemester] = useState(user?.currentSemester || 1);
 
   const [classes, setClasses] = useState([]);
+  const [modules, setModules] = useState([]);
   const [attendanceByClass, setAttendanceByClass] = useState({});
 
   const [loading, setLoading] = useState(false);
@@ -115,13 +117,23 @@ const LiveClass = () => {
     fetchClasses();
   }, [fetchClasses]);
 
+  // Fetch modules when year or semester changes
+  useEffect(() => {
+    if (isAdmin) {
+      modulesAPI
+        .getModules({ year: form.year, semester: form.semester })
+        .then(setModules)
+        .catch(() => setModules([]));
+    }
+  }, [isAdmin, form.year, form.semester]);
+
   // Pre-fill form when coming from Kuppi Request
   useEffect(() => {
     if (fromKuppiRequest && kuppiRequestData && isAdmin) {
-      const preferredDateTime = kuppiRequestData.preferredDateTime 
+      const preferredDateTime = kuppiRequestData.preferredDateTime
         ? toInputDateTime(kuppiRequestData.preferredDateTime)
         : '';
-      
+
       setForm({
         title: kuppiRequestData.topic || '',
         description: `Kuppi session for ${kuppiRequestData.topic}`,
@@ -135,7 +147,7 @@ const LiveClass = () => {
 
       // Show a toast notification
       toast.success('Pre-filled form with Kuppi request details');
-      
+
       // Clear the navigation state to prevent re-filling on refresh
       navigate(location.pathname, { replace: true, state: {} });
     }
@@ -365,7 +377,7 @@ const LiveClass = () => {
               <p className="sidebar-description">
                 Fill in the details to schedule an interactive learning experience for your academic cohorts.
               </p>
-              
+
               {fromKuppiRequest && kuppiRequestData && (
                 <div className="sidebar-kuppi-info">
                   <div className="kuppi-info-badge">From Kuppi Request</div>
@@ -395,16 +407,16 @@ const LiveClass = () => {
 
             <div className="live-form-content">
               <button type="button" className="form-close-btn" onClick={resetForm}>✕</button>
-              
+
               {formError && <div className="live-error">{formError}</div>}
 
               <div className="form-section">
                 <h3 className="section-title">CLASS INFORMATION</h3>
-                
+
                 <div className="form-field">
                   <label>Class Title</label>
-                  <input 
-                    value={form.title} 
+                  <input
+                    value={form.title}
                     onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
                     placeholder="e.g. Advanced Calculus: Integration Techniques"
                     className="modern-input"
@@ -414,22 +426,27 @@ const LiveClass = () => {
                 <div className="form-row-3">
                   <div className="form-field">
                     <label>Module Code</label>
-                    <select 
-                      value={form.moduleCode} 
-                      onChange={(e) => setForm((prev) => ({ ...prev, moduleCode: e.target.value.toUpperCase() }))}
+                    <select
+                      value={form.moduleCode}
+                      onChange={(e) => setForm((prev) => ({ ...prev, moduleCode: e.target.value }))}
                       className="modern-select"
+                      disabled={modules.length === 0}
                     >
-                      <option value="">Select Code</option>
-                      <option value="CS101">CS101</option>
-                      <option value="CS102">CS102</option>
-                      <option value="MATH201">MATH201</option>
+                      <option value="">
+                        {modules.length === 0 ? 'No modules available' : 'Select Code'}
+                      </option>
+                      {modules.map((module) => (
+                        <option key={module._id} value={module.moduleCode}>
+                          {module.moduleCode} - {module.moduleName}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div className="form-field">
                     <label>Year</label>
-                    <select 
-                      value={form.year} 
+                    <select
+                      value={form.year}
                       onChange={(e) => setForm((prev) => ({ ...prev, year: Number(e.target.value) }))}
                       className="modern-select"
                     >
@@ -442,8 +459,8 @@ const LiveClass = () => {
 
                   <div className="form-field">
                     <label>Semester</label>
-                    <select 
-                      value={form.semester} 
+                    <select
+                      value={form.semester}
                       onChange={(e) => setForm((prev) => ({ ...prev, semester: Number(e.target.value) }))}
                       className="modern-select"
                     >
@@ -457,7 +474,7 @@ const LiveClass = () => {
 
               <div className="form-section">
                 <h3 className="section-title">LOGISTICS & PLATFORM</h3>
-                
+
                 <div className="form-row-2">
                   <div className="form-field">
                     <label>Date & Time</label>
@@ -473,8 +490,8 @@ const LiveClass = () => {
 
                   <div className="form-field">
                     <label>Platform</label>
-                    <select 
-                      value={form.platform} 
+                    <select
+                      value={form.platform}
                       onChange={(e) => setForm((prev) => ({ ...prev, platform: e.target.value }))}
                       className="modern-select"
                     >
@@ -502,9 +519,9 @@ const LiveClass = () => {
 
                 <div className="form-field">
                   <label>Description</label>
-                  <textarea 
-                    rows={4} 
-                    value={form.description} 
+                  <textarea
+                    rows={4}
+                    value={form.description}
                     onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
                     placeholder="Outline the learning objectives and prerequisites for this session..."
                     className="modern-textarea"
