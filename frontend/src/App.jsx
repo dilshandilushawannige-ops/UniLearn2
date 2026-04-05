@@ -18,6 +18,7 @@ import DashboardProfile from './pages/DashboardProfile';
 import Resources from './pages/Resources';
 
 import KuppiRequest from './pages/KuppiRequest';
+import Attendance from './pages/Attendance';
 
 import ResourceDetails from './pages/ResourceDetails';
 import ResourceSummary from './pages/ResourceSummary';
@@ -55,6 +56,7 @@ const AppContent = () => {
           <Route path="study-plans" element={<DashboardStudyPlan />} />
 
           <Route path="requests" element={<KuppiRequest />} />
+          <Route path="attendance" element={<Attendance />} />
 
           <Route path="questions" element={<StackOver />} />
           <Route path="questions/:id" element={<QuestionDetails />} />
