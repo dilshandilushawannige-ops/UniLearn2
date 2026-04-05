@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { liveClassesAPI } from '../api/liveClasses';
 import { moderationAPI } from '../api/moderation';
@@ -64,7 +65,13 @@ const emptyForm = {
 
 const LiveClass = () => {
   const { user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
+
+  // Check if coming from Kuppi Request
+  const fromKuppiRequest = location.state?.fromKuppiRequest;
+  const kuppiRequestData = location.state?.requestData;
 
   const [year, setYear] = useState(user?.currentYear || 1);
   const [semester, setSemester] = useState(user?.currentSemester || 1);
@@ -107,6 +114,32 @@ const LiveClass = () => {
   useEffect(() => {
     fetchClasses();
   }, [fetchClasses]);
+
+  // Pre-fill form when coming from Kuppi Request
+  useEffect(() => {
+    if (fromKuppiRequest && kuppiRequestData && isAdmin) {
+      const preferredDateTime = kuppiRequestData.preferredDateTime 
+        ? toInputDateTime(kuppiRequestData.preferredDateTime)
+        : '';
+      
+      setForm({
+        title: kuppiRequestData.topic || '',
+        description: `Kuppi session for ${kuppiRequestData.topic}`,
+        moduleCode: kuppiRequestData.moduleCode || '',
+        year: user?.currentYear || 1,
+        semester: user?.currentSemester || 1,
+        classDateTime: preferredDateTime,
+        platform: 'zoom',
+        meetingLink: '',
+      });
+
+      // Show a toast notification
+      toast.success('Pre-filled form with Kuppi request details');
+      
+      // Clear the navigation state to prevent re-filling on refresh
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [fromKuppiRequest, kuppiRequestData, isAdmin, user, navigate, location.pathname]);
 
   const upcomingClasses = useMemo(() => {
     const now = Date.now();
@@ -322,81 +355,174 @@ const LiveClass = () => {
       </div>
 
       {isAdmin && (
-        <form className="live-form" onSubmit={handleSubmit}>
-          <h2>Schedule Live Class</h2>
-          {formError && <div className="live-error">{formError}</div>}
+        <div className="live-form-modal-wrapper">
+          <form className="live-form-modern" onSubmit={handleSubmit}>
+            <div className="live-form-sidebar">
+              <div className="sidebar-icon">
+                <span>📚</span>
+              </div>
+              <h2 className="sidebar-title">Create New Live Class</h2>
+              <p className="sidebar-description">
+                Fill in the details to schedule an interactive learning experience for your academic cohorts.
+              </p>
+              
+              {fromKuppiRequest && kuppiRequestData && (
+                <div className="sidebar-kuppi-info">
+                  <div className="kuppi-info-badge">From Kuppi Request</div>
+                  <p className="kuppi-info-text">
+                    <strong>{kuppiRequestData.student?.username || 'Unknown'}</strong>
+                    <br />
+                    {kuppiRequestData.topic}
+                  </p>
+                </div>
+              )}
 
-          <div className="live-grid-2">
-            <label>
-              Title
-              <input value={form.title} onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))} />
-            </label>
-            <label>
-              Module Code
-              <input value={form.moduleCode} onChange={(e) => setForm((prev) => ({ ...prev, moduleCode: e.target.value.toUpperCase() }))} />
-            </label>
-          </div>
+              <div className="sidebar-features">
+                <div className="feature-item">
+                  <span className="feature-dot"></span>
+                  <span>Instant Notifications</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-dot"></span>
+                  <span>Automated Attendance</span>
+                </div>
+                <div className="feature-item">
+                  <span className="feature-dot"></span>
+                  <span>Cloud Recording</span>
+                </div>
+              </div>
+            </div>
 
-          <label>
-            Description
-            <textarea rows={3} value={form.description} onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))} />
-          </label>
+            <div className="live-form-content">
+              <button type="button" className="form-close-btn" onClick={resetForm}>✕</button>
+              
+              {formError && <div className="live-error">{formError}</div>}
 
-          <div className="live-grid-3">
-            <label>
-              Year
-              <select value={form.year} onChange={(e) => setForm((prev) => ({ ...prev, year: Number(e.target.value) }))}>
-                {[1, 2, 3, 4].map((value) => (
-                  <option key={value} value={value}>Year {value}</option>
-                ))}
-              </select>
-            </label>
+              <div className="form-section">
+                <h3 className="section-title">CLASS INFORMATION</h3>
+                
+                <div className="form-field">
+                  <label>Class Title</label>
+                  <input 
+                    value={form.title} 
+                    onChange={(e) => setForm((prev) => ({ ...prev, title: e.target.value }))}
+                    placeholder="e.g. Advanced Calculus: Integration Techniques"
+                    className="modern-input"
+                  />
+                </div>
 
-            <label>
-              Semester
-              <select value={form.semester} onChange={(e) => setForm((prev) => ({ ...prev, semester: Number(e.target.value) }))}>
-                <option value={1}>Semester 1</option>
-                <option value={2}>Semester 2</option>
-              </select>
-            </label>
+                <div className="form-row-3">
+                  <div className="form-field">
+                    <label>Module Code</label>
+                    <select 
+                      value={form.moduleCode} 
+                      onChange={(e) => setForm((prev) => ({ ...prev, moduleCode: e.target.value.toUpperCase() }))}
+                      className="modern-select"
+                    >
+                      <option value="">Select Code</option>
+                      <option value="CS101">CS101</option>
+                      <option value="CS102">CS102</option>
+                      <option value="MATH201">MATH201</option>
+                    </select>
+                  </div>
 
-            <label>
-              Platform
-              <select value={form.platform} onChange={(e) => setForm((prev) => ({ ...prev, platform: e.target.value }))}>
-                {PLATFORM_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-            </label>
-          </div>
+                  <div className="form-field">
+                    <label>Year</label>
+                    <select 
+                      value={form.year} 
+                      onChange={(e) => setForm((prev) => ({ ...prev, year: Number(e.target.value) }))}
+                      className="modern-select"
+                    >
+                      <option value="">Select Year</option>
+                      {[1, 2, 3, 4].map((value) => (
+                        <option key={value} value={value}>Year {value}</option>
+                      ))}
+                    </select>
+                  </div>
 
-          <div className="live-grid-2">
-            <label>
-              Date & Time
-              <input
-                type="datetime-local"
-                value={form.classDateTime}
-                onChange={(e) => setForm((prev) => ({ ...prev, classDateTime: e.target.value }))}
-                min={getTomorrowInputMin()}
-              />
-            </label>
-            <label>
-              Meeting Link
-              <input
-                type="url"
-                value={form.meetingLink}
-                onChange={(e) => setForm((prev) => ({ ...prev, meetingLink: e.target.value }))}
-                placeholder="https://"
-              />
-            </label>
-          </div>
+                  <div className="form-field">
+                    <label>Semester</label>
+                    <select 
+                      value={form.semester} 
+                      onChange={(e) => setForm((prev) => ({ ...prev, semester: Number(e.target.value) }))}
+                      className="modern-select"
+                    >
+                      <option value="">Select Sem</option>
+                      <option value={1}>Semester 1</option>
+                      <option value={2}>Semester 2</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
 
-          <div className="live-form-actions">
-            <button type="submit" className="live-btn primary" disabled={saving}>
-              {saving ? 'Saving...' : 'Schedule Class'}
-            </button>
-          </div>
-        </form>
+              <div className="form-section">
+                <h3 className="section-title">LOGISTICS & PLATFORM</h3>
+                
+                <div className="form-row-2">
+                  <div className="form-field">
+                    <label>Date & Time</label>
+                    <input
+                      type="datetime-local"
+                      value={form.classDateTime}
+                      onChange={(e) => setForm((prev) => ({ ...prev, classDateTime: e.target.value }))}
+                      min={getTomorrowInputMin()}
+                      className="modern-input"
+                      placeholder="mm/dd/yyyy, --:-- --"
+                    />
+                  </div>
+
+                  <div className="form-field">
+                    <label>Platform</label>
+                    <select 
+                      value={form.platform} 
+                      onChange={(e) => setForm((prev) => ({ ...prev, platform: e.target.value }))}
+                      className="modern-select"
+                    >
+                      <option value="">Select Platform</option>
+                      {PLATFORM_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>{option.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-field">
+                  <label>Meeting Link</label>
+                  <div className="input-with-icon">
+                    <span className="input-icon">🔗</span>
+                    <input
+                      type="url"
+                      value={form.meetingLink}
+                      onChange={(e) => setForm((prev) => ({ ...prev, meetingLink: e.target.value }))}
+                      placeholder="https://zoom.us/j/..."
+                      className="modern-input with-icon"
+                    />
+                  </div>
+                </div>
+
+                <div className="form-field">
+                  <label>Description</label>
+                  <textarea 
+                    rows={4} 
+                    value={form.description} 
+                    onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
+                    placeholder="Outline the learning objectives and prerequisites for this session..."
+                    className="modern-textarea"
+                  />
+                </div>
+              </div>
+
+              <div className="form-actions">
+                <button type="button" className="btn-cancel" onClick={resetForm}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn-submit" disabled={saving}>
+                  {saving ? 'Scheduling...' : 'Schedule Class'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       )}
 
       {error && <div className="live-error">{error}</div>}

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { modulesAPI } from '../api/modules';
 import { kuppiRequestsAPI } from '../api/kuppiRequests';
 import { moderationAPI } from '../api/moderation';
@@ -36,6 +37,7 @@ const isValidHttpUrl = (value) => {
 
 const KuppiRequest = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
 
   const [modules, setModules] = useState([]);
@@ -56,14 +58,6 @@ const KuppiRequest = () => {
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const [createSessionModal, setCreateSessionModal] = useState({
-    open: false,
-    requestId: '',
-    meetingLink: '',
-    scheduledAt: '',
-    error: '',
-    submitting: false,
-  });
   const [reportModal, setReportModal] = useState({ open: false, contentId: '', title: '' });
 
   // Fetch modules for the logged-in student's year and semester.
@@ -140,66 +134,14 @@ const KuppiRequest = () => {
   };
 
   const openCreateSessionModal = (requestId) => {
-    setCreateSessionModal({
-      open: true,
-      requestId,
-      meetingLink: '',
-      scheduledAt: '',
-      error: '',
-      submitting: false,
+    // Navigate to live classes page with the request ID
+    navigate('/user-dashboard/live-class', { 
+      state: { 
+        fromKuppiRequest: true, 
+        requestId: requestId,
+        requestData: requests.find(r => r._id === requestId)
+      } 
     });
-  };
-
-  const closeCreateSessionModal = () => {
-    setCreateSessionModal({
-      open: false,
-      requestId: '',
-      meetingLink: '',
-      scheduledAt: '',
-      error: '',
-      submitting: false,
-    });
-  };
-
-  const handleSubmitCreateSession = async (e) => {
-    e.preventDefault();
-
-    const meetingLink = String(createSessionModal.meetingLink || '').trim();
-    const scheduledAt = createSessionModal.scheduledAt;
-
-    if (!meetingLink) {
-      setCreateSessionModal((prev) => ({ ...prev, error: 'Meeting link is required.' }));
-      return;
-    }
-
-    if (!isValidHttpUrl(meetingLink)) {
-      setCreateSessionModal((prev) => ({ ...prev, error: 'Meeting link must be a valid URL.' }));
-      return;
-    }
-
-    if (!scheduledAt) {
-      setCreateSessionModal((prev) => ({ ...prev, error: 'Scheduled date and time is required.' }));
-      return;
-    }
-
-    const parsedScheduledAt = new Date(scheduledAt);
-    if (Number.isNaN(parsedScheduledAt.getTime()) || parsedScheduledAt.getTime() <= Date.now()) {
-      setCreateSessionModal((prev) => ({ ...prev, error: 'Scheduled date and time must be in the future.' }));
-      return;
-    }
-
-    setCreateSessionModal((prev) => ({ ...prev, error: '', submitting: true }));
-    try {
-      await kuppiRequestsAPI.createSessionFromRequest({
-        requestId: createSessionModal.requestId,
-        meetingLink,
-        scheduledAt: parsedScheduledAt.toISOString(),
-      });
-      await fetchRequests();
-      closeCreateSessionModal();
-    } catch (err) {
-      setCreateSessionModal((prev) => ({ ...prev, error: err.message, submitting: false }));
-    }
   };
 
   const handleReportSession = async ({ reason, otherText }) => {
@@ -279,50 +221,158 @@ const KuppiRequest = () => {
       )}
 
       {isAdmin && (
-        <section className="kuppi-card">
-          <h2>All Kuppi Requests</h2>
-          <div className="kuppi-table-wrap">
-            <table>
+        <div className="admin-kuppi-container">
+          {/* Header Section */}
+          <div className="admin-kuppi-header">
+            <div className="admin-kuppi-tabs">
+              <button className="admin-tab active">ACADEMIC</button>
+              <button className="admin-tab">STUDENT SUPPORT</button>
+            </div>
+            <div className="admin-kuppi-title-section">
+              <h1 className="admin-kuppi-title">
+                Kuppi <span className="admin-kuppi-highlight">Requests</span>
+              </h1>
+              <p className="admin-kuppi-subtitle">
+                Manage peer-to-peer learning sessions. Review, approve, and facilitate academic knowledge sharing between students.
+              </p>
+            </div>
+            <div className="admin-kuppi-stats">
+              <div className="admin-stat-card">
+                <div className="admin-stat-number">{requests.filter(r => r.status === 'pending').length}</div>
+                <div className="admin-stat-label">PENDING REVIEWS</div>
+              </div>
+              <div className="admin-stat-card">
+                <div className="admin-stat-number">{requests.filter(r => r.status === 'approved').length}</div>
+                <div className="admin-stat-label">SESSIONS APPROVED</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Table Section */}
+          <div className="admin-kuppi-table-container">
+            <table className="admin-kuppi-table">
               <thead>
                 <tr>
-                  <th>Student Name</th>
-                  <th>Topic</th>
-                  <th>Module</th>
-                  <th>Requested Time</th>
-                  <th>Status</th>
-                  <th>Action</th>
+                  <th>STUDENT</th>
+                  <th>SESSION DETAILS</th>
+                  <th>SCHEDULE</th>
+                  <th>STATUS</th>
+                  <th>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
-                {adminTableRows.map((item) => (
-                  <tr key={item._id}>
-                    <td>{item.student?.username || 'Unknown'}</td>
-                    <td>{item.topic}</td>
-                    <td>{item.moduleCode}</td>
-                    <td>{formatDateTime(item.preferredDateTime)}</td>
-                    <td>
-                      <span className={`kuppi-badge ${item.status}`}>{item.status.toUpperCase()}</span>
-                    </td>
-                    <td>
-                      {item.status === 'pending' && (
-                        <div className="table-actions">
-                          <button className="kuppi-btn ok" onClick={() => handleApproveReject(item._id, 'approved')}>Approve</button>
-                          <button className="kuppi-btn danger" onClick={() => handleApproveReject(item._id, 'rejected')}>Reject</button>
+                {adminTableRows.map((item) => {
+                  const studentName = item.student?.username || 'Unknown';
+                  const studentId = item.student?.studentId || 'N/A';
+                  const initials = studentName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                  
+                  return (
+                    <tr key={item._id}>
+                      <td>
+                        <div className="student-cell">
+                          <div className="student-avatar">{initials}</div>
+                          <div className="student-info">
+                            <div className="student-name">{studentName}</div>
+                            <div className="student-id">{studentId}</div>
+                          </div>
                         </div>
-                      )}
-                      {item.status !== 'pending' && <span className="kuppi-muted">Completed</span>}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td>
+                        <div className="session-details-cell">
+                          <div className="session-topic">{item.topic}</div>
+                          <div className="session-module-tag">{item.moduleCode}</div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="schedule-cell">
+                          <div className="schedule-date">{formatDateTime(item.preferredDateTime)}</div>
+                          <div className="schedule-duration">Duration: 2 Hours</div>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={`admin-status-badge ${item.status}`}>
+                          {item.status.toUpperCase()}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="admin-actions-cell">
+                          {item.status === 'pending' && (
+                            <>
+                              <button 
+                                className="admin-action-icon reject-icon"
+                                onClick={() => handleApproveReject(item._id, 'rejected')}
+                                title="Reject"
+                              >
+                                ✕
+                              </button>
+                              <button 
+                                className="admin-action-icon approve-icon"
+                                onClick={() => handleApproveReject(item._id, 'approved')}
+                                title="Approve"
+                              >
+                                ✓
+                              </button>
+                            </>
+                          )}
+                          {item.status === 'approved' && (
+                            <button 
+                              className="admin-create-session-btn"
+                              onClick={() => openCreateSessionModal(item._id)}
+                            >
+                              <span className="session-icon">▶</span> Create Session
+                            </button>
+                          )}
+                          {item.status === 'rejected' && (
+                            <>
+                              <button 
+                                className="admin-action-icon reject-icon"
+                                title="Rejected"
+                              >
+                                ✕
+                              </button>
+                              <button 
+                                className="admin-action-icon approve-icon disabled"
+                                title="Approve"
+                              >
+                                ✓
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
                 {adminTableRows.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="kuppi-muted">No requests yet.</td>
+                    <td colSpan={5} className="admin-empty-state">
+                      No requests yet.
+                    </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </section>
+
+          {/* Pagination */}
+          <div className="admin-kuppi-pagination">
+            <div className="pagination-info">
+              Showing 1 to {Math.min(4, adminTableRows.length)} of {adminTableRows.length} requests
+            </div>
+            <div className="pagination-controls">
+              <button className="pagination-btn">‹</button>
+              <button className="pagination-btn active">1</button>
+              <button className="pagination-btn">2</button>
+              <button className="pagination-btn">3</button>
+              <button className="pagination-btn">›</button>
+            </div>
+          </div>
+
+          {/* Floating Add Button */}
+          <button className="admin-floating-add-btn" title="Add New Request">
+            +
+          </button>
+        </div>
       )}
 
       {!isAdmin && (
@@ -377,60 +427,6 @@ const KuppiRequest = () => {
         onClose={() => setReportModal({ open: false, contentId: '', title: '' })}
         onSubmit={handleReportSession}
       />
-
-      {createSessionModal.open && (
-        <div className="kuppi-modal-overlay" role="dialog" aria-modal="true" aria-label="Create Session">
-          <div className="kuppi-modal">
-            <h3>Create Session</h3>
-            <p className="kuppi-muted">Add meeting details for this approved request.</p>
-
-            <form className="session-block" onSubmit={handleSubmitCreateSession}>
-              <label>
-                Meeting Link
-                <input
-                  type="url"
-                  placeholder="https://"
-                  value={createSessionModal.meetingLink}
-                  onChange={(e) =>
-                    setCreateSessionModal((prev) => ({
-                      ...prev,
-                      meetingLink: e.target.value,
-                      error: '',
-                    }))
-                  }
-                />
-              </label>
-
-              <label>
-                Scheduled Date & Time
-                <input
-                  type="datetime-local"
-                  value={createSessionModal.scheduledAt}
-                  onChange={(e) =>
-                    setCreateSessionModal((prev) => ({
-                      ...prev,
-                      scheduledAt: e.target.value,
-                      error: '',
-                    }))
-                  }
-                  min={toInputDateTime(new Date().toISOString())}
-                />
-              </label>
-
-              {createSessionModal.error && <div className="kuppi-error">{createSessionModal.error}</div>}
-
-              <div className="kuppi-modal-actions">
-                <button type="button" className="kuppi-btn" onClick={closeCreateSessionModal}>
-                  Cancel
-                </button>
-                <button type="submit" className="kuppi-btn primary" disabled={createSessionModal.submitting}>
-                  {createSessionModal.submitting ? 'Creating...' : 'Create Session'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

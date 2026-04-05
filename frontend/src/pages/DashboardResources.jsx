@@ -5,6 +5,7 @@ import { modulesAPI } from '../api/modules';
 import { moderationAPI } from '../api/moderation';
 import { useAuth } from '../context/AuthContext';
 import ModerationReportModal from '../components/ModerationReportModal';
+import '../styles/ModerationDashboard.css';
 
 const RESOURCE_TYPES = ['lecture_pdf', 'short_note', 'past_paper', 'yt_link', 'other'];
 
@@ -285,94 +286,6 @@ const DashboardResources = () => {
 
   return (
     <div>
-      <div>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-          </svg>
-          Learning Resources
-        </h1>
-        <p style={{ color: '#6b7280', fontSize: '1.125rem', margin: 0, marginBottom: '2.5rem' }}>Manage and discover {filteredResources.length} curated academic materials.</p>
-      </div>
-
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", marginBottom: "2.5rem" }}>
-
-        <div style={{ position: "relative", minWidth: "160px", maxWidth: "200px", flex: "1" }}>
-          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", pointerEvents: "none" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-          </span>
-          <select style={{ width: "100%", appearance: "none", padding: "0.75rem 2.5rem 0.75rem 2.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#334155", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }} value={filterYear} onChange={e => { setFilterYear(Number(e.target.value)); setFilterModule(""); }}>
-            {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year: Year {y}</option>)}
-          </select>
-          <span style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </span>
-        </div>
-
-        <div style={{ position: "relative", minWidth: "180px", maxWidth: "220px", flex: "1" }}>
-          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", pointerEvents: "none" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-          </span>
-          <select style={{ width: "100%", appearance: "none", padding: "0.75rem 2.5rem 0.75rem 2.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#334155", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }} value={filterSem} onChange={e => { setFilterSem(Number(e.target.value)); setFilterModule(""); }}>
-            <option value={1}>Semester: Sem 1</option>
-            <option value={2}>Semester: Sem 2</option>
-          </select>
-          <span style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </span>
-        </div>
-
-        <div style={{ position: "relative", minWidth: "160px", maxWidth: "200px", flex: "1" }}>
-          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", pointerEvents: "none" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-          </span>
-          <select style={{ width: "100%", appearance: "none", padding: "0.75rem 2.5rem 0.75rem 2.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#334155", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }} value={filterModule} onChange={e => setFilterModule(e.target.value)}>
-            <option value="">Module: All</option>
-            {modules.map(m => <option key={m._id} value={m.moduleCode}>Module: {m.moduleCode}</option>)}
-          </select>
-          <span style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </span>
-        </div>
-
-        <div style={{ position: "relative", minWidth: "200px", maxWidth: "250px", flex: "1" }}>
-          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", pointerEvents: "none" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-          </span>
-          <select style={{ width: "100%", appearance: "none", padding: "0.75rem 2.5rem 0.75rem 2.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#334155", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }} value={filterType} onChange={e => setFilterType(e.target.value)}>
-            <option value="">Type: All</option>
-            {RESOURCE_TYPES.map(t => {
-              const words = t.split("_").map(w => w.charAt(0).toUpperCase() + w.slice(1));
-              return <option key={t} value={t}>Type: {words.join(" ")}</option>;
-            })}
-          </select>
-          <span style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </span>
-        </div>
-
-        {/* Sort By Dropdown */}
-        <div style={{ position: "relative", minWidth: "220px", maxWidth: "250px", flex: "1", marginLeft: "auto" }}>
-          <span style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", pointerEvents: "none" }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
-          </span>
-          <select style={{ width: "100%", appearance: "none", padding: "0.75rem 2.5rem 0.75rem 2.5rem", borderRadius: "10px", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#334155", fontWeight: "600", fontSize: "0.95rem", cursor: "pointer", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
-            <option value="most_viewed">Sort: Most Viewed</option>
-            <option value="highest_rated">Sort: Highest Rated</option>
-            <option value="most_downloaded">Sort: Most Downloaded</option>
-          </select>
-          <span style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "#94a3b8" }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-          </span>
-        </div>
-
-      </div>
-
       {/* Resource List */}
       <div className="resources-grid">
         {!listLoading && filteredResources.map(r => (
@@ -473,78 +386,133 @@ const DashboardResources = () => {
       </div>
 
       {isAdmin && (
-        <div style={{ marginTop: '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
-            <h2 style={{ margin: 0, color: '#1f2937' }}>Moderation Dashboard</h2>
-            <input
-              value={modSearch}
-              onChange={(e) => { setModSearch(e.target.value); setModPage(1); }}
-              placeholder="Search by title"
-              style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.55rem 0.7rem', minWidth: '220px' }}
-            />
-          </div>
+        <div className="moderation-dashboard-container">
+          {/* Content Moderation Queue */}
+          <div className="moderation-content">
+            <div className="moderation-header">
+              <h2 className="moderation-title">Content Moderation Queue</h2>
+              <div className="moderation-tabs">
+                <span className="moderation-tab-label">Show:</span>
+                <button className="moderation-tab active">All Reports</button>
+                <button className="moderation-tab">Archived</button>
+              </div>
+            </div>
 
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Title</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Submitted By</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Report Count</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Status</th>
-                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {!modLoading && modItems.map((item) => {
-                  const suspended = item.submittedBy?.suspendedUntil && new Date(item.submittedBy.suspendedUntil).getTime() > Date.now();
-                  return (
-                    <tr key={item._id}>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>{item.title}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>{item.submittedBy?.username || 'Unknown'}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>{item.reportCount}</td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>
-                        {item.status === 'auto_hidden' ? (
-                          <span style={{ background: '#fee2e2', color: '#991b1b', borderRadius: '999px', padding: '0.2rem 0.55rem', fontSize: '0.75rem', fontWeight: 700 }}>AUTO-HIDDEN</span>
-                        ) : item.status === 'flagged' ? (
-                          <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: '999px', padding: '0.2rem 0.55rem', fontSize: '0.75rem', fontWeight: 700 }}>FLAGGED</span>
-                        ) : (
-                          <span style={{ background: '#e2e8f0', color: '#334155', borderRadius: '999px', padding: '0.2rem 0.55rem', fontSize: '0.75rem', fontWeight: 700 }}>NORMAL</span>
-                        )}
-                      </td>
-                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>
-                        <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
-                          <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#0f766e', color: '#fff', cursor: 'pointer' }} onClick={() => handleRestore(item._id)}>Restore</button>
-                          <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#dc2626', color: '#fff', cursor: 'pointer' }} onClick={() => handleDeleteContent(item._id)}>Delete</button>
-                          {!suspended && <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#b45309', color: '#fff', cursor: 'pointer' }} onClick={() => handleSuspend(item.submittedBy)}>Suspend</button>}
-                          {suspended && <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#2563eb', color: '#fff', cursor: 'pointer' }} onClick={() => handleUnsuspend(item.submittedBy)}>Unsuspend</button>}
-                        </div>
+            {/* Table */}
+            <div className="moderation-table-container">
+              <table className="moderation-table">
+                <thead>
+                  <tr>
+                    <th>CONTENT TITLE</th>
+                    <th>SUBMITTED BY</th>
+                    <th>REPORT COUNT</th>
+                    <th>STATUS</th>
+                    <th>ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {!modLoading && modItems.map((item) => {
+                    const suspended = item.submittedBy?.suspendedUntil && new Date(item.submittedBy.suspendedUntil).getTime() > Date.now();
+                    const initials = (item.submittedBy?.username || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    
+                    return (
+                      <tr key={item._id}>
+                        <td>
+                          <div className="content-title-cell">
+                            <div className="content-title-main">{item.title}</div>
+                            <div className="content-title-meta">
+                              {item.contentType} / {item.moduleCode || 'N/A'} / {item.resourceType || 'Document'}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <div className="submitted-by-cell">
+                            <div className="user-avatar-small">{initials}</div>
+                            <span className="user-name">{item.submittedBy?.username || 'Unknown'}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <span className={`report-count ${item.reportCount > 10 ? 'high' : item.reportCount > 0 ? 'medium' : 'low'}`}>
+                            {item.reportCount}
+                          </span>
+                        </td>
+                        <td>
+                          {item.status === 'auto_hidden' ? (
+                            <span className="status-badge auto-hidden">AUTO-HIDDEN</span>
+                          ) : item.status === 'flagged' ? (
+                            <span className="status-badge flagged">FLAGGED</span>
+                          ) : (
+                            <span className="status-badge normal">NORMAL</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="moderation-actions">
+                            <button className="mod-action-btn restore" onClick={() => handleRestore(item._id)} title="Restore">
+                              ↻
+                            </button>
+                            <button className="mod-action-btn delete" onClick={() => handleDeleteContent(item._id)} title="Delete">
+                              🗑
+                            </button>
+                            {!suspended && (
+                              <button className="mod-action-btn suspend" onClick={() => handleSuspend(item.submittedBy)} title="Suspend User">
+                                ⊘
+                              </button>
+                            )}
+                            {suspended && (
+                              <button className="mod-action-btn unsuspend" onClick={() => handleUnsuspend(item.submittedBy)} title="Unsuspend User">
+                                ✓
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  {!modLoading && modItems.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="empty-state">
+                        No moderation records found.
                       </td>
                     </tr>
-                  );
-                })}
-                {!modLoading && modItems.length === 0 && (
-                  <tr>
-                    <td colSpan={5} style={{ padding: '0.75rem 0.4rem', color: '#64748b' }}>No moderation records found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
 
-          <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Page {modMeta.page} of {modMeta.totalPages} ({modMeta.total} items)</span>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                style={{ border: '1px solid #cbd5e1', background: '#fff', borderRadius: '8px', padding: '0.35rem 0.6rem', cursor: modPage <= 1 ? 'not-allowed' : 'pointer' }}
-                disabled={modPage <= 1}
-                onClick={() => setModPage((prev) => Math.max(1, prev - 1))}
-              >Prev</button>
-              <button
-                style={{ border: '1px solid #cbd5e1', background: '#fff', borderRadius: '8px', padding: '0.35rem 0.6rem', cursor: modPage >= modMeta.totalPages ? 'not-allowed' : 'pointer' }}
-                disabled={modPage >= modMeta.totalPages}
-                onClick={() => setModPage((prev) => Math.min(modMeta.totalPages, prev + 1))}
-              >Next</button>
+            {/* Pagination */}
+            <div className="moderation-pagination">
+              <div className="pagination-info">
+                Showing {((modPage - 1) * modMeta.limit) + 1} of {modMeta.total} items
+              </div>
+              <div className="pagination-controls">
+                <button 
+                  className="pagination-btn"
+                  disabled={modPage <= 1}
+                  onClick={() => setModPage((prev) => Math.max(1, prev - 1))}
+                >
+                  ‹
+                </button>
+                <button className={`pagination-btn ${modPage === 1 ? 'active' : ''}`} onClick={() => setModPage(1)}>
+                  1
+                </button>
+                {modMeta.totalPages > 1 && (
+                  <button className={`pagination-btn ${modPage === 2 ? 'active' : ''}`} onClick={() => setModPage(2)}>
+                    2
+                  </button>
+                )}
+                {modMeta.totalPages > 2 && (
+                  <button className={`pagination-btn ${modPage === 3 ? 'active' : ''}`} onClick={() => setModPage(3)}>
+                    3
+                  </button>
+                )}
+                <button 
+                  className="pagination-btn"
+                  disabled={modPage >= modMeta.totalPages}
+                  onClick={() => setModPage((prev) => Math.min(modMeta.totalPages, prev + 1))}
+                >
+                  ›
+                </button>
+              </div>
             </div>
           </div>
         </div>
