@@ -12,6 +12,13 @@ import studyPlanIcon from '../assets/study-plan-icon.png';
 import liveClassIcon from '../assets/live-class-icon.png';
 import mcqIcon from '../assets/mcq-icon.png';
 
+// Admin sidebar icons
+import dashboardAdminIcon from '../assets/dashboard-admin-icon.png';
+import moderationIcon from '../assets/moderation-icon.png';
+import liveClassAdminIcon from '../assets/live-class-admin-icon.png';
+import attendanceIcon from '../assets/attendance-icon.png';
+import kuppiAdminIcon from '../assets/kuppi-admin-icon.png';
+
 // Topbar PNG icons
 import searchIcon from '../assets/search-icon.png';
 import notificationIcon from '../assets/notification-icon.png';
@@ -115,37 +122,43 @@ const DashboardLayout = () => {
     {
       to: '/user-dashboard',
       label: 'Dashboard',
-      icon: '🏠',
+      icon: dashboardAdminIcon,
       match: ['/user-dashboard'],
+      exact: true,
     },
     {
       to: '/user-dashboard/resources',
       label: 'Moderation',
-      icon: '🛡️',
+      icon: moderationIcon,
       match: ['/user-dashboard/resources'],
     },
     {
       to: '/user-dashboard/live-class',
       label: 'Live Classes',
-      icon: '🖥️',
+      icon: liveClassAdminIcon,
       match: ['/user-dashboard/live-class'],
+      exact: true,
     },
     {
-      to: '/user-dashboard/live-class',
+      to: '/user-dashboard/attendance',
       label: 'Attendance',
-      icon: '✅',
-      match: ['/user-dashboard/live-class'],
+      icon: attendanceIcon,
+      match: ['/user-dashboard/attendance'],
     },
     {
       to: '/user-dashboard/requests',
       label: 'Kuppi',
-      icon: '🧑‍🏫',
+      icon: kuppiAdminIcon,
       match: ['/user-dashboard/requests'],
     },
   ];
 
-  const isAdminNavActive = (item) =>
-    item.match.some((path) => (path === '/user-dashboard' ? location.pathname === path : location.pathname.startsWith(path)));
+  const isAdminNavActive = (item) => {
+    if (item.exact) {
+      return item.match.some((path) => location.pathname === path);
+    }
+    return item.match.some((path) => location.pathname.startsWith(path));
+  };
 
   return (
     <div className="user-dashboard">
@@ -161,7 +174,7 @@ const DashboardLayout = () => {
           {isAdmin ? (
             adminNavItems.map((item) => (
               <Link key={item.label} to={item.to} className={`nav-item ${isAdminNavActive(item) ? 'active' : ''}`}>
-                <span className="admin-nav-icon">{item.icon}</span>
+                <img src={item.icon} alt={item.label} className="nav-icon-img" />
                 {item.label}
               </Link>
             ))
