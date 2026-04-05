@@ -178,6 +178,14 @@
   transition: filter 0.25s ease;
 }
 
+/* SVG nav icons: use link text color (no recolor filter) */
+.nav-icon-svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: color 0.25s ease;
+}
+
 .admin-nav-icon {
   width: 20px;
   height: 20px;

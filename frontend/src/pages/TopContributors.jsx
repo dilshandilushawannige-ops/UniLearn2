@@ -1,12 +1,21 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import html2canvas from 'html2canvas';
 import api from '../api/axios';
-import podiumMedalsSprite from '../assets/podium-medals.png';
+import podiumMedal1st from '../assets/podium-medal-1st.png';
+import podiumMedal2nd from '../assets/podium-medal-2nd.png';
+import podiumMedal3rd from '../assets/podium-medal-3rd.png';
 import '../styles/StackOver.css';
 
+const PODIUM_MEDAL_SRC = { 1: podiumMedal1st, 2: podiumMedal2nd, 3: podiumMedal3rd };
+
+const SITE_NAME = (import.meta.env.VITE_SITE_NAME || 'UniLearnHub').trim();
+
+/** Podium slot 1–3 (use slot index, not only API `user.rank`, so labels match the column). */
 const rankBadge = (rank) => {
-  if (rank === 1) return { label: 'Champion', tone: 'gold' };
-  if (rank === 2) return { label: 'Runner-up', tone: 'silver' };
-  if (rank === 3) return { label: '3rd place', tone: 'bronze' };
+  const r = Number(rank);
+  if (r === 1) return { label: 'Champion', tone: 'gold' };
+  if (r === 2) return { label: 'Runner-up', tone: 'silver' };
+  if (r === 3) return { label: '3rd place', tone: 'bronze' };
   return null;
 };
 
@@ -22,84 +31,84 @@ const resolveContributorAvatar = (avatar, username) => {
   return `https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'U')}&background=random&size=128`;
 };
 
-/** Visual theme key per achievement (creative card styles) */
+/** Maps backend `User.checkAndAwardBadges` names → CSS modifier (exact match; avoids false “first” hits). */
+const BADGE_KIND_BY_NAME = {
+  'first question': 'first-question',
+  'first answer': 'first-answer',
+  helpful: 'helpful',
+  'accepted pro': 'accepted-pro',
+  'top contributor': 'top-contributor',
+};
+
 const badgeKind = (name = '') => {
-  const v = name.toLowerCase();
-  if (v.includes('first question')) return 'first-question';
-  if (v.includes('first answer')) return 'first-answer';
-  if (v.includes('helpful')) return 'helpful';
-  if (v.includes('accepted')) return 'accepted-pro';
-  if (v.includes('top contributor')) return 'top-contributor';
-  return 'default';
+  const k = (name || '').toLowerCase().trim();
+  return BADGE_KIND_BY_NAME[k] || 'default';
 };
 
 const RANK_WORD = { 1: 'FIRST', 2: 'SECOND', 3: 'THIRD' };
 
-/** Small badge-type pictograms (matches backend badge names) */
-const BadgeTypeIcon = ({ name, size = 20 }) => {
-  const n = (name || '').toLowerCase();
+/** Pictograms per resolved `kind` (must stay in sync with `badgeKind`). */
+const BadgeTypeIcon = ({ kind, size = 20 }) => {
   const cls = 'leaderboard-badge-type-icon';
-  if (n.includes('first question')) {
-    return (
-      <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-        <rect x="5" y="4" width="14" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.75" />
-        <path d="M8 8h8M8 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="17" cy="16" r="3" fill="currentColor" opacity="0.25" />
-      </svg>
-    );
+  switch (kind) {
+    case 'first-question':
+      return (
+        <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+          <rect x="5" y="4" width="14" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.75" />
+          <path d="M8 8h8M8 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="17" cy="16" r="3" fill="currentColor" opacity="0.25" />
+        </svg>
+      );
+    case 'first-answer':
+      return (
+        <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+          <path
+            d="M5 6h12a2 2 0 012 2v6a2 2 0 01-2 2h-4l-4 4v-4H5a2 2 0 01-2-2V8a2 2 0 012-2z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinejoin="round"
+          />
+          <path d="M8 10h6M8 13h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      );
+    case 'helpful':
+      return (
+        <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+          <path
+            d="M12 21s-6-4.35-6-9a4 4 0 018 0c0 4.65-6 9-6 9z"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.75"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case 'accepted-pro':
+      return (
+        <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.75" />
+          <path d="M8 12l2.5 2.5L16 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'top-contributor':
+      return (
+        <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+          <path
+            d="M12 3l2.2 4.5L19 8.5l-3.5 3.4.8 4.9L12 15.9 7.7 16.8l.8-4.9L5 8.5l4.8-.9L12 3z"
+            fill="currentColor"
+            opacity="0.9"
+          />
+        </svg>
+      );
+    default:
+      return (
+        <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
+          <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.75" />
+          <path d="M12 8v5M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
   }
-  if (n.includes('first answer')) {
-    return (
-      <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-        <path
-          d="M5 6h12a2 2 0 012 2v6a2 2 0 01-2 2h-4l-4 4v-4H5a2 2 0 01-2-2V8a2 2 0 012-2z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinejoin="round"
-        />
-        <path d="M8 10h6M8 13h4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  if (n.includes('helpful')) {
-    return (
-      <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-        <path
-          d="M12 21s-6-4.35-6-9a4 4 0 018 0c0 4.65-6 9-6 9z"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
-  }
-  if (n.includes('accepted')) {
-    return (
-      <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-        <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.75" />
-        <path d="M8 12l2.5 2.5L16 9" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
-    );
-  }
-  if (n.includes('top contributor')) {
-    return (
-      <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-        <path
-          d="M12 3l2.2 4.5L19 8.5l-3.5 3.4.8 4.9L12 15.9 7.7 16.8l.8-4.9L5 8.5l4.8-.9L12 3z"
-          fill="currentColor"
-          opacity="0.9"
-        />
-      </svg>
-    );
-  }
-  return (
-    <svg className={cls} viewBox="0 0 24 24" width={size} height={size} aria-hidden>
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M12 8v5M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
 };
 
 function CreativeBadge({ name, compact = false }) {
@@ -107,7 +116,7 @@ function CreativeBadge({ name, compact = false }) {
   return (
     <div className={`lb-site-badge lb-site-badge--${kind}${compact ? ' lb-site-badge--compact' : ''}`} title={name}>
       <span className="lb-site-badge__icon" aria-hidden>
-        <BadgeTypeIcon name={name} size={compact ? 16 : 18} />
+        <BadgeTypeIcon kind={kind} size={compact ? 16 : 18} />
       </span>
       <span className="lb-site-badge__label">{name}</span>
     </div>
@@ -121,10 +130,85 @@ const podiumOrder = [
   { place: 3, metal: 'bronze' },
 ];
 
-function PodiumSlot({ user, place, metal }) {
-  const word = RANK_WORD[place];
+/** Certificate of Achievement (navy / light blue / gold). Ref = root node for PNG export. */
+const PodiumCertificate = React.forwardRef(function PodiumCertificate(
+  { place, displayName, vacant, modal = false },
+  ref
+) {
+  const slot = Number(place);
+  const word = RANK_WORD[slot] || 'FIRST';
+  const name = (displayName || '').trim() || '—';
+
+  return (
+    <div
+      ref={ref}
+      className={`podium-certificate podium-certificate--place-${place}${vacant ? ' podium-certificate--vacant' : ''}${modal ? ' podium-certificate--modal' : ''}`}
+      role={modal ? 'document' : 'img'}
+      aria-label={
+        vacant ? `${word} place — certificate slot open` : `Certificate of achievement for ${name}, ${word} place`
+      }
+    >
+      <div className="podium-certificate__frame">
+        <span className="podium-certificate__corner podium-certificate__corner--tr" aria-hidden />
+        <span className="podium-certificate__corner podium-certificate__corner--bl" aria-hidden />
+        <div className="podium-certificate__sheet">
+          <div className="podium-certificate__title">Certificate</div>
+          <div className="podium-certificate__subtitle">of achievement</div>
+          <p className="podium-certificate__issuer">{SITE_NAME}</p>
+          <div className="podium-certificate__diamonds" aria-hidden>
+            <span />
+            <span />
+            <span />
+          </div>
+          <p className="podium-certificate__present">This certificate is proudly presented to</p>
+          <p className="podium-certificate__name">{vacant ? '—' : name}</p>
+          <p className="podium-certificate__body">
+            {vacant
+              ? 'Awaiting a top forum contributor.'
+              : `For excellence as ${word} place on the ${SITE_NAME} forum leaderboard.`}
+          </p>
+          <p className="podium-certificate__official">
+            Official recognition · {SITE_NAME} · Top Contributors
+          </p>
+          <div className="podium-certificate__footer">
+            <div className="podium-certificate__sig">
+              <span className="podium-certificate__sig-hand podium-certificate__sig-hand--left" aria-hidden>
+                {SITE_NAME}
+              </span>
+              <span className="podium-certificate__sig-line" />
+              <span className="podium-certificate__sig-label">Executive Director</span>
+            </div>
+            <div className="podium-certificate__seal-wrap" aria-hidden>
+              <div className="podium-certificate__seal">
+                <span className="podium-certificate__seal-star">★</span>
+                <span className="podium-certificate__seal-rank">{slot}</span>
+                <span className="podium-certificate__seal-site">{SITE_NAME}</span>
+              </div>
+              <div className="podium-certificate__ribbons">
+                <span className="podium-certificate__ribbon podium-certificate__ribbon--l" />
+                <span className="podium-certificate__ribbon podium-certificate__ribbon--r" />
+              </div>
+            </div>
+            <div className="podium-certificate__sig">
+              <span className="podium-certificate__sig-hand podium-certificate__sig-hand--right" aria-hidden>
+                Leadership Team
+              </span>
+              <span className="podium-certificate__sig-line" />
+              <span className="podium-certificate__sig-label">Forum Board</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+PodiumCertificate.displayName = 'PodiumCertificate';
+
+function PodiumSlot({ user, place, metal, onOpenCertificate }) {
   const beam = place === 1 ? 'tall' : place === 2 ? 'mid' : 'short';
-  const rb = user ? rankBadge(user.rank) : null;
+  const slotLabel = user ? rankBadge(place) : null;
+  const word = RANK_WORD[Number(place)] || 'FIRST';
 
   return (
     <div
@@ -144,7 +228,9 @@ function PodiumSlot({ user, place, metal }) {
             </div>
             <div className="awards-podium-name">{user.username}</div>
             <div className="awards-podium-rep">{user.reputationScore} rep</div>
-            {rb && <span className={`awards-podium-champion rank-${rb.tone}`}>{rb.label}</span>}
+            {slotLabel && (
+              <span className={`awards-podium-champion rank-${slotLabel.tone}`}>{slotLabel.label}</span>
+            )}
             <div className="awards-podium-mini">
               <span>{user.questionsAsked} Q</span>
               <span className="awards-podium-mini-dot">·</span>
@@ -158,11 +244,14 @@ function PodiumSlot({ user, place, metal }) {
         )}
       </div>
 
-      <div
-        className={`awards-floating-cap awards-medal-sprite awards-medal-sprite--place-${place}${user ? '' : ' awards-floating-cap--vacant'}`}
-        style={{ backgroundImage: `url(${podiumMedalsSprite})` }}
-        role="img"
-        aria-label={`${word} place medal`}
+      <button
+        type="button"
+        className={`awards-floating-cap awards-medal-img${user ? '' : ' awards-floating-cap--vacant'}`}
+        style={{ backgroundImage: `url(${PODIUM_MEDAL_SRC[place]})` }}
+        onClick={() => onOpenCertificate(place)}
+        aria-label={
+          user ? `Open certificate: ${user.username}, ${word} place` : `Open ${word} place certificate`
+        }
       />
 
       <div className={`awards-beam awards-beam--${beam}${user ? '' : ' awards-beam--vacant'}`} aria-hidden>
@@ -178,7 +267,9 @@ function PodiumSlot({ user, place, metal }) {
       {user && (
         <div className="awards-podium-badges">
           {(user.badges || []).length > 0 ? (
-            (user.badges || []).map((b) => <CreativeBadge key={b.name} name={b.name} />)
+            (user.badges || []).map((b, i) => (
+              <CreativeBadge key={`${b.name}-${b.awardedAt || i}`} name={b.name} />
+            ))
           ) : (
             <span className="awards-podium-badges-empty">No badges yet</span>
           )}
@@ -191,6 +282,10 @@ function PodiumSlot({ user, place, metal }) {
 const TopContributors = () => {
   const [leaderboard, setLeaderboard] = useState({ topContributors: [], myStats: null });
   const [loading, setLoading] = useState(true);
+  const [certModal, setCertModal] = useState(null);
+  const [certDownloading, setCertDownloading] = useState(false);
+  const certCaptureRef = useRef(null);
+  const certExportLockRef = useRef(false);
 
   useEffect(() => {
     const load = async () => {
@@ -218,6 +313,49 @@ const TopContributors = () => {
     const tableRows = list.filter((u) => u.rank > 3);
     return { podiumUsers: podiumSlots, tableRows };
   }, [leaderboard.topContributors]);
+
+  useEffect(() => {
+    if (!certModal) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setCertModal(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [certModal]);
+
+  const openCertificate = (place) => {
+    const idx = Math.max(0, Math.min(2, place - 1));
+    setCertModal({ place, user: podiumUsers[idx] });
+  };
+
+  const downloadCertificatePng = useCallback(async () => {
+    if (certExportLockRef.current) return;
+    const node = certCaptureRef.current;
+    if (!node || !certModal) return;
+    certExportLockRef.current = true;
+    setCertDownloading(true);
+    try {
+      await document.fonts.ready;
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      const safeUser = (certModal.user?.username || 'open-slot').replace(/[^\w.-]+/g, '_');
+      const { place } = certModal;
+      const link = document.createElement('a');
+      link.download = `${SITE_NAME.replace(/\s+/g, '-')}-certificate-place-${place}-${safeUser}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      certExportLockRef.current = false;
+      setCertDownloading(false);
+    }
+  }, [certModal]);
 
   return (
     <div className="forum-shell">
@@ -247,7 +385,13 @@ const TopContributors = () => {
               </header>
               <div className="awards-podium-grid" aria-label="Top three contributors">
                 {podiumOrder.map(({ place, metal }, idx) => (
-                  <PodiumSlot key={place} user={podiumUsers[idx]} place={place} metal={metal} />
+                  <PodiumSlot
+                    key={place}
+                    user={podiumUsers[idx]}
+                    place={place}
+                    metal={metal}
+                    onOpenCertificate={openCertificate}
+                  />
                 ))}
               </div>
             </>
@@ -281,8 +425,8 @@ const TopContributors = () => {
                     <span className="leaderboard-username">{u.username}</span>
                   </span>
                   <span className="leaderboard-cell leaderboard-badges-cell">
-                    {(u.badges || []).map((b) => (
-                      <CreativeBadge key={b.name} name={b.name} compact />
+                    {(u.badges || []).map((b, i) => (
+                      <CreativeBadge key={`${b.name}-${b.awardedAt || i}`} name={b.name} compact />
                     ))}
                     {!u.badges?.length && <span className="leaderboard-badge-empty">No badges yet</span>}
                   </span>
@@ -322,6 +466,48 @@ const TopContributors = () => {
           </div>
         )}
       </div>
+
+      {certModal && (
+        <div
+          className="podium-cert-modal-backdrop"
+          onClick={() => setCertModal(null)}
+          role="presentation"
+        >
+          <div
+            className="podium-cert-modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${RANK_WORD[certModal.place]} place certificate`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="podium-cert-modal-close"
+              onClick={() => setCertModal(null)}
+              aria-label="Close certificate"
+            >
+              ×
+            </button>
+            <PodiumCertificate
+              ref={certCaptureRef}
+              place={certModal.place}
+              displayName={certModal.user?.username}
+              vacant={!certModal.user}
+              modal
+            />
+            <div className="podium-cert-modal-actions">
+              <button
+                type="button"
+                className="podium-cert-download-btn"
+                onClick={downloadCertificatePng}
+                disabled={certDownloading}
+              >
+                {certDownloading ? 'Preparing download…' : 'Download certificate (PNG)'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -56,15 +56,29 @@
   background: var(--f-primary);
   border: 0;
   color: #fff;
-  border-radius: 10px;
-  padding: 10px 16px;
+  border-radius: 9999px;
+  padding: 11px 22px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
 }
 
 .forum-primary-btn:hover {
   background: var(--f-primary-hover);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
+}
+
+.forum-primary-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(37, 99, 235, 0.28);
+}
+
+.forum-primary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .forum-primary-btn:focus-visible {
@@ -106,6 +120,27 @@
 
 .forum-link-btn:hover {
   color: var(--f-primary-hover);
+}
+
+/* Search row: compact blue pill (Study Plan “+ New Plan” style) */
+.forum-search-row .forum-link-btn {
+  background: var(--f-primary);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 9999px;
+  font-size: 14px;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.28);
+  transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+}
+
+.forum-search-row .forum-link-btn:hover {
+  color: #fff;
+  background: var(--f-primary-hover);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+}
+
+.forum-search-row .forum-link-btn:active {
+  transform: translateY(1px);
 }
 
 .forum-tabs {
@@ -164,8 +199,8 @@
 
 .forum-tab {
   border: 0;
-  border-radius: 8px;
-  padding: 7px 12px;
+  border-radius: 9999px;
+  padding: 7px 14px;
   cursor: pointer;
   background: var(--f-tab-idle);
   color: var(--f-body);
@@ -185,8 +220,8 @@
 
 .forum-bookmark-btn {
   border: 0;
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: 9999px;
+  padding: 6px 12px;
   cursor: pointer;
   background: var(--f-tab-idle);
   color: var(--f-muted);
@@ -378,8 +413,8 @@
 .ask-demo-btn {
   border: 1px solid var(--f-border);
   background: var(--f-input-bg);
-  padding: 7px 10px;
-  border-radius: 10px;
+  padding: 8px 14px;
+  border-radius: 9999px;
   cursor: pointer;
   font-size: 12px;
   color: var(--f-body);
@@ -490,8 +525,8 @@
   background: var(--f-card);
   border: 1px solid var(--f-border);
   color: var(--f-body);
-  border-radius: 10px;
-  padding: 12px 16px;
+  border-radius: 9999px;
+  padding: 12px 20px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -710,7 +745,7 @@
   opacity: 0.5;
 }
 
-/* Rank medals: 3-in-1 PNG sprite (gold 1st | silver 2nd | bronze 3rd) */
+/* Rank medals: 3-in-1 PNG sprite (click opens certificate modal) */
 .awards-floating-cap {
   position: relative;
   z-index: 3;
@@ -721,32 +756,587 @@
   flex-shrink: 0;
 }
 
-.awards-floating-cap.awards-medal-sprite {
+button.awards-floating-cap {
+  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button.awards-floating-cap:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 4px;
+  border-radius: 12px;
+}
+
+/* One PNG per place (1st / 2nd / 3rd) — avoids sprite background-position bugs. */
+.awards-floating-cap.awards-medal-img {
   background-color: transparent;
   background-repeat: no-repeat;
-  background-size: 300% 100%;
+  background-position: center center;
+  background-size: contain;
   border-radius: 0;
   box-shadow: none;
-  /* PNG has transparent outer area; shadow follows badge shape */
   filter: drop-shadow(0 6px 16px rgba(15, 23, 42, 0.12)) drop-shadow(0 2px 6px rgba(37, 99, 235, 0.1));
-}
-
-.awards-medal-sprite--place-1 {
-  background-position: 0% 50%;
-}
-
-.awards-medal-sprite--place-2 {
-  background-position: 50% 50%;
-}
-
-.awards-medal-sprite--place-3 {
-  background-position: 100% 50%;
 }
 
 .awards-floating-cap--vacant {
   opacity: 0.38;
   animation: none;
   filter: grayscale(0.15) brightness(0.95) drop-shadow(0 4px 10px rgba(15, 23, 42, 0.08));
+}
+
+/* Certificate modal (medal click) */
+.podium-cert-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.podium-cert-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  max-height: min(92vh, 720px);
+  overflow-y: auto;
+  padding-bottom: 8px;
+}
+
+.podium-cert-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 9999px;
+  background: #fff;
+  color: var(--f-heading);
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background 0.15s ease,
+    transform 0.12s ease;
+}
+
+.podium-cert-modal-close:hover {
+  background: var(--f-input-bg);
+}
+
+.podium-cert-modal-close:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 2px;
+}
+
+.podium-cert-modal-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+  padding: 0 12px 8px;
+}
+
+.podium-cert-download-btn {
+  background: var(--f-primary);
+  color: #fff;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 22px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.32);
+  font-family: Inter, system-ui, sans-serif;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.podium-cert-download-btn:hover:not(:disabled) {
+  background: var(--f-primary-hover);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.38);
+}
+
+.podium-cert-download-btn:focus-visible {
+  outline: 2px solid var(--f-accent);
+  outline-offset: 2px;
+}
+
+.podium-cert-download-btn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.podium-certificate {
+  --cert-navy: #003366;
+  --cert-blue: #3399cc;
+  --cert-gold: #ffcc33;
+  --cert-accent: var(--cert-gold);
+  --cert-accent-mid: var(--cert-blue);
+  --cert-seal: #1e5a8a;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  width: 100%;
+}
+
+.podium-certificate--place-1 {
+  --cert-accent: #ffcc33;
+  --cert-accent-mid: #3399cc;
+  --cert-seal: #0d4a7a;
+}
+
+.podium-certificate--place-2 {
+  --cert-accent: #cbd5e1;
+  --cert-accent-mid: #64748b;
+  --cert-seal: #475569;
+}
+
+.podium-certificate--place-3 {
+  --cert-accent: #e7a06c;
+  --cert-accent-mid: #b45309;
+  --cert-seal: #9a3412;
+}
+
+.podium-certificate__frame {
+  position: relative;
+  border: 3px solid var(--cert-navy);
+  border-radius: 2px;
+  background: var(--cert-navy);
+  box-shadow:
+    0 10px 28px rgba(0, 51, 102, 0.18),
+    0 2px 8px rgba(0, 51, 102, 0.08);
+  overflow: hidden;
+}
+
+.podium-certificate__corner {
+  position: absolute;
+  z-index: 0;
+  width: 56px;
+  height: 56px;
+  pointer-events: none;
+}
+
+.podium-certificate__corner--tr {
+  top: 0;
+  right: 0;
+  background: linear-gradient(
+    225deg,
+    var(--cert-navy) 0%,
+    var(--cert-navy) 18%,
+    var(--cert-accent-mid) 18%,
+    var(--cert-accent-mid) 36%,
+    var(--cert-accent) 36%,
+    var(--cert-accent) 52%,
+    transparent 52%
+  );
+}
+
+.podium-certificate__corner--bl {
+  bottom: 0;
+  left: 0;
+  background: linear-gradient(
+    45deg,
+    var(--cert-navy) 0%,
+    var(--cert-navy) 22%,
+    var(--cert-blue) 22%,
+    var(--cert-blue) 44%,
+    var(--cert-accent) 44%,
+    var(--cert-accent) 60%,
+    transparent 60%
+  );
+}
+
+.podium-certificate__sheet {
+  position: relative;
+  z-index: 1;
+  margin: 3px;
+  padding: 10px 8px 12px;
+  background: #fff;
+  border-radius: 1px;
+  box-shadow: inset 0 0 0 1px rgba(0, 51, 102, 0.06);
+  text-align: center;
+}
+
+.podium-certificate__title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cert-navy);
+  line-height: 1.15;
+}
+
+.podium-certificate__subtitle {
+  margin-top: 2px;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.podium-certificate__issuer {
+  margin: 5px 0 0;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cert-navy);
+}
+
+.podium-certificate__diamonds {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 8px;
+}
+
+.podium-certificate__diamonds span {
+  width: 5px;
+  height: 5px;
+  background: var(--cert-accent);
+  transform: rotate(45deg);
+}
+
+.podium-certificate__diamonds span:nth-child(2) {
+  background: var(--cert-blue);
+  width: 4px;
+  height: 4px;
+}
+
+.podium-certificate__present {
+  margin: 0 0 4px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 8px;
+  font-style: italic;
+  color: #334155;
+  line-height: 1.35;
+  padding: 0 4px;
+}
+
+.podium-certificate__name {
+  margin: 0 0 6px;
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(1.2rem, 2.8vw + 0.55rem, 1.75rem);
+  font-weight: 400;
+  line-height: 1.15;
+  color: #0f172a;
+  word-break: break-word;
+  padding: 0 6px;
+  min-height: 2.1em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.podium-certificate--vacant .podium-certificate__name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 1.25rem;
+  color: #94a3b8;
+}
+
+.podium-certificate__body {
+  margin: 0 0 6px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 8px;
+  line-height: 1.45;
+  color: #475569;
+  padding: 0 6px;
+  max-width: 100%;
+}
+
+.podium-certificate__official {
+  margin: 0 0 10px;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 7px;
+  font-style: italic;
+  line-height: 1.4;
+  color: #64748b;
+  padding: 0 8px;
+}
+
+.podium-certificate__footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 0 2px;
+}
+
+.podium-certificate__sig {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+}
+
+.podium-certificate__sig-hand {
+  font-family: 'Dancing Script', 'Great Vibes', cursive;
+  font-weight: 700;
+  font-size: 15px;
+  color: #0c2748;
+  line-height: 1.05;
+  min-height: 2.35em;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  text-align: center;
+  padding: 0 2px 3px;
+  max-width: 88px;
+}
+
+.podium-certificate__sig-hand--left {
+  transform: rotate(-3deg);
+  font-size: 14px;
+}
+
+.podium-certificate__sig-hand--right {
+  transform: rotate(2.5deg);
+  font-size: 16px;
+}
+
+.podium-certificate__sig-line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: rgba(0, 51, 102, 0.45);
+  max-width: 56px;
+  margin-top: -1px;
+}
+
+.podium-certificate__sig-label {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 6px;
+  font-style: italic;
+  color: #64748b;
+  margin-top: 3px;
+}
+
+.podium-certificate__seal-wrap {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+}
+
+.podium-certificate__seal {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a90c2 0%, var(--cert-seal) 55%, #0a2744 100%);
+  border: 2px solid var(--cert-navy);
+  box-shadow:
+    0 2px 6px rgba(0, 51, 102, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+  padding: 3px 2px;
+  box-sizing: border-box;
+}
+
+.podium-certificate__seal-star {
+  font-size: 8px;
+  color: var(--cert-gold);
+  line-height: 1;
+  text-shadow: 0 0 4px rgba(255, 204, 51, 0.6);
+}
+
+.podium-certificate__seal-rank {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.podium-certificate__seal-site {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 4px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  color: rgba(255, 255, 255, 0.92);
+  margin-top: 1px;
+  max-width: 34px;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+.podium-certificate__ribbons {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: -2px;
+  position: relative;
+  z-index: 0;
+}
+
+.podium-certificate__ribbon {
+  width: 10px;
+  height: 14px;
+  background: linear-gradient(180deg, #ffd54a 0%, var(--cert-gold) 40%, #d4a012 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 50% 100%, 0 72%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.podium-certificate--vacant .podium-certificate__sheet {
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+}
+
+.podium-certificate--vacant .podium-certificate__seal {
+  opacity: 0.65;
+}
+
+/* Larger certificate inside modal */
+.podium-certificate--modal {
+  width: 100%;
+  max-width: none;
+}
+
+.podium-certificate--modal .podium-certificate__corner {
+  width: 72px;
+  height: 72px;
+}
+
+.podium-certificate--modal .podium-certificate__sheet {
+  margin: 4px;
+  padding: 20px 16px 24px;
+}
+
+.podium-certificate--modal .podium-certificate__title {
+  font-size: clamp(1.1rem, 4vw, 1.5rem);
+  letter-spacing: 0.12em;
+}
+
+.podium-certificate--modal .podium-certificate__subtitle {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  margin-top: 4px;
+}
+
+.podium-certificate--modal .podium-certificate__issuer {
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.podium-certificate--modal .podium-certificate__diamonds {
+  margin: 10px 0 12px;
+  gap: 8px;
+}
+
+.podium-certificate--modal .podium-certificate__diamonds span {
+  width: 7px;
+  height: 7px;
+}
+
+.podium-certificate--modal .podium-certificate__diamonds span:nth-child(2) {
+  width: 6px;
+  height: 6px;
+}
+
+.podium-certificate--modal .podium-certificate__present {
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.podium-certificate--modal .podium-certificate__name {
+  font-size: clamp(1.75rem, 6vw, 2.65rem);
+  margin-bottom: 10px;
+  min-height: 2.4em;
+}
+
+.podium-certificate--modal.podium-certificate--vacant .podium-certificate__name {
+  font-size: 1.75rem;
+}
+
+.podium-certificate--modal .podium-certificate__body {
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.podium-certificate--modal .podium-certificate__official {
+  font-size: 11px;
+  margin-bottom: 18px;
+}
+
+.podium-certificate--modal .podium-certificate__sig-hand {
+  font-size: 22px;
+  max-width: 120px;
+  min-height: 2.5em;
+}
+
+.podium-certificate--modal .podium-certificate__sig-hand--left {
+  font-size: 20px;
+}
+
+.podium-certificate--modal .podium-certificate__sig-hand--right {
+  font-size: 24px;
+}
+
+.podium-certificate--modal .podium-certificate__sig-line {
+  max-width: 88px;
+}
+
+.podium-certificate--modal .podium-certificate__sig-label {
+  font-size: 9px;
+}
+
+.podium-certificate--modal .podium-certificate__seal-wrap {
+  width: 56px;
+}
+
+.podium-certificate--modal .podium-certificate__seal {
+  width: 52px;
+  height: 52px;
+  min-height: 52px;
+  padding: 3px 2px;
+  box-sizing: border-box;
+}
+
+.podium-certificate--modal .podium-certificate__seal-star {
+  font-size: 11px;
+}
+
+.podium-certificate--modal .podium-certificate__seal-rank {
+  font-size: 15px;
+}
+
+.podium-certificate--modal .podium-certificate__seal-site {
+  font-size: 5.5px;
+  max-width: 44px;
+}
+
+.podium-certificate--modal .podium-certificate__ribbon {
+  width: 12px;
+  height: 18px;
 }
 
 .awards-podium-col--gold .awards-base__disc {

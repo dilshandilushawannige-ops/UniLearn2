@@ -17,8 +17,16 @@ import searchIcon from '../assets/search-icon.png';
 import notificationIcon from '../assets/notification-icon.png';
 import gamesIcon from '../assets/games-icon.png';
 import requestsIcon from '../assets/requests-icon.png';
-import topContributorsIcon from '../assets/star-icon.png';
 import stackOverflowNavIcon from '../assets/docs-icon.png';
+
+/** Monochrome leaderboard bars — follows nav text color (gray / blue), no PNG tint issues */
+const TopContributorsNavIcon = () => (
+  <svg className="nav-icon-svg" width={20} height={20} viewBox="0 0 24 24" aria-hidden>
+    <rect x="3" y="14" width="5.5" height="7" rx="1.2" fill="currentColor" opacity={0.85} />
+    <rect x="9.25" y="8" width="5.5" height="13" rx="1.2" fill="currentColor" />
+    <rect x="15.5" y="11" width="5.5" height="10" rx="1.2" fill="currentColor" opacity={0.88} />
+  </svg>
+);
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -202,7 +210,7 @@ const DashboardLayout = () => {
                 Stack Overflow
               </Link>
               <Link to="/user-dashboard/top-contributors" className={`nav-item ${isActive('/user-dashboard/top-contributors') ? 'active' : ''}`}>
-                <img src={topContributorsIcon} alt="" className="nav-icon-img" />
+                <TopContributorsNavIcon />
                 Top Contributors
               </Link>
             </>
