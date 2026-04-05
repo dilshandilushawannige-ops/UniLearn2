@@ -158,7 +158,7 @@ const DashboardUpload = () => {
 
                     <div style={{ marginBottom: '1.5rem' }}>
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Module Code</label>
-                        <select style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }} value={form.moduleCode} onChange={e => setForm({ ...form, moduleCode: e.target.value })} required>
+                        <select style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }} value={form.moduleCode} onChange={e => { setUploadError(''); setForm({ ...form, moduleCode: e.target.value }); }} onInvalid={e => { e.preventDefault(); setUploadError('Please select a Module Code.'); }} required>
                             <option value="">e.g., IT3040</option>
                             {modules.map(m => <option key={m._id} value={m.moduleCode}>{m.moduleCode} - {m.moduleName}</option>)}
                         </select>

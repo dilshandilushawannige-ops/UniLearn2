@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { resourcesAPI } from '../api/resources';
 
@@ -99,12 +99,12 @@ const ResourceDetails = () => {
     return (
         <div>
             {/* Breadcrumb Navigation */}
-            <nav style={{ marginBottom: '1.5rem', fontSize: '0.9rem', color: '#64748b' }}>
+            <nav style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.5rem', fontSize: '0.9rem', color: '#64748b' }}>
                 <Link to="/user-dashboard" style={{ color: '#64748b', textDecoration: 'none' }}>Dashboard</Link>
-                <span style={{ margin: '0 0.5rem' }}>›</span>
+                <span style={{ color: '#cbd5e1' }}>/</span>
                 <Link to="/user-dashboard/resources" style={{ color: '#64748b', textDecoration: 'none' }}>Resources</Link>
-                <span style={{ margin: '0 0.5rem' }}>›</span>
-                <span style={{ color: '#0f172a', fontWeight: '600' }}>Resource details</span>
+                <span style={{ color: '#cbd5e1' }}>/</span>
+                <span style={{ color: '#0f172a', fontWeight: '600' }}>{resource?.title || 'Resource details'}</span>
             </nav>
 
             {/* Resource Header */}
@@ -120,9 +120,9 @@ const ResourceDetails = () => {
                         </svg>
                     </div>
                     <div style={{ flex: 1 }}>
-                        <h1 style={{ margin: 0, fontSize: '2rem', color: '#0f172a', fontWeight: '800' }}>
+                        <h1 style={{ margin: 0, fontSize: '2.5rem', color: '#0f172a', fontWeight: '800' }}>
                             {resource.title}
-                            {resource.lectureNo && <span style={{ fontSize: '1.5rem', color: '#64748b', fontWeight: '600' }}> - Lecture {resource.lectureNo}</span>}
+                            {resource.lectureNo && <span style={{ fontSize: '1.75rem', color: '#64748b', fontWeight: '600' }}> - Lecture {resource.lectureNo}</span>}
                         </h1>
                         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginTop: '0.75rem', fontSize: '0.95rem', color: '#64748b', flexWrap: 'wrap' }}>
                             <span style={{ backgroundColor: '#e0e7ff', color: '#0369a1', padding: '4px 12px', borderRadius: '6px', fontWeight: '700', fontSize: '0.85rem' }}>
@@ -149,7 +149,7 @@ const ResourceDetails = () => {
                     <button
                         onClick={handleGenerateSummary}
                         disabled={generatingSummary}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#ecfdf5', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '8px', fontWeight: '700', cursor: generatingSummary ? 'wait' : 'pointer', fontSize: '1rem', transition: 'all 0.2s', opacity: generatingSummary ? 0.7 : 1 }}
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#ecfdf5', color: '#16a34a', border: '1px solid #bbf7d0', borderRadius: '9999px', fontWeight: '700', cursor: generatingSummary ? 'wait' : 'pointer', fontSize: '1rem', transition: 'all 0.2s', opacity: generatingSummary ? 0.7 : 1 }}
                         onMouseOver={(e) => { if (!generatingSummary) { e.currentTarget.style.backgroundColor = '#dcfce7'; e.currentTarget.style.transform = 'translateY(-1px)'; } }}
                         onMouseOut={(e) => { if (!generatingSummary) { e.currentTarget.style.backgroundColor = '#ecfdf5'; e.currentTarget.style.transform = 'none'; } }}
                     >
@@ -176,7 +176,7 @@ const ResourceDetails = () => {
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', marginBottom: '1rem' }}>
                 <button
                     onClick={handleDownload}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '1rem', transition: 'background-color 0.2s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '9999px', fontWeight: '600', cursor: 'pointer', fontSize: '1rem', transition: 'background-color 0.2s' }}
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#2563eb'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#3b82f6'}
                 >
@@ -192,7 +192,7 @@ const ResourceDetails = () => {
                         navigator.clipboard.writeText(window.location.href);
                         alert('Link copied to clipboard!');
                     }}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: 'white', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '1rem', transition: 'all 0.2s' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.75rem 1.5rem', backgroundColor: 'white', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '9999px', fontWeight: '600', cursor: 'pointer', fontSize: '1rem', transition: 'all 0.2s' }}
                     onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.color = '#0f172a'; }}
                     onMouseOut={(e) => { e.currentTarget.style.backgroundColor = 'white'; e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.color = '#475569'; }}
                 >
@@ -266,7 +266,7 @@ const ResourceDetails = () => {
                                     )}
                                 </div>
                             </div>
-                            <button style={{ width: '100%', padding: '0.6rem', border: '1px solid #cbd5e1', borderRadius: '25px', backgroundColor: 'white', color: '#475569', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', transition: 'background-color 0.2s' }}
+                            <button onClick={() => navigate('/user-dashboard/profile')} style={{ width: '100%', padding: '0.6rem', border: '1px solid #cbd5e1', borderRadius: '25px', backgroundColor: 'white', color: '#475569', fontWeight: '600', fontSize: '0.9rem', cursor: 'pointer', transition: 'background-color 0.2s' }}
                                 onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
                                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'white'}>
                                 View Profile
