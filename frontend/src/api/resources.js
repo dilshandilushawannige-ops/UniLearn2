@@ -28,4 +28,12 @@ export const resourcesAPI = {
     const { data } = await api.post(`/resources/${id}/download`);
     return data;
   },
+  deleteResource: async (id) => {
+    const { data } = await api.delete(`/resources/${id}`);
+    return data;
+  },
+  updateResource: async (id, updateData) => {
+    const { data } = await api.put(`/resources/${id}`, updateData);
+    return data;
+  }
 };

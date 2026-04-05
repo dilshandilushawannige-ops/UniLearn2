@@ -91,6 +91,9 @@ const MCQ = () => {
     if (!year || !moduleCode || !lectureFrom || !lectureTo) {
       return setError('Please fill all fields.');
     }
+    if (numQuestions < 3 || numQuestions > 30) {
+      return setError('Value must be between 3 and 30.');
+    }
     setGenerating(true);
     try {
       const mcqSet = await mcqsAPI.generate({ year, semester, moduleCode, lectureFrom: Number(lectureFrom), lectureTo: Number(lectureTo), numQuestions });
@@ -154,22 +157,22 @@ const MCQ = () => {
       {/* ── Generate Form ─────────────────────────────────────────────────── */}
       {!activeMCQ && (
         <div style={{ display: 'flex', gap: '2rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          
+
           {/* Left Column - Form */}
           <div style={{ flex: '1 1 500px', backgroundColor: '#fff', borderRadius: '16px', padding: '2rem', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)' }}>
-            
+
             {error && <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #f87171' }}>{error}</div>}
             {info && <div style={{ padding: '12px', backgroundColor: '#dcfce3', color: '#15803d', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #4ade80' }}>{info}</div>}
 
             <form onSubmit={handleGenerate}>
-              
+
               {/* Year & Semester */}
               <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Academic Year</label>
-                  <select 
-                    style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }} 
-                    value={year} 
+                  <select
+                    style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }}
+                    value={year}
                     onChange={e => setYear(Number(e.target.value))}
                   >
                     <option value={1}>Year 1</option>
@@ -180,9 +183,9 @@ const MCQ = () => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Semester</label>
-                  <select 
-                    style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }} 
-                    value={semester} 
+                  <select
+                    style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }}
+                    value={semester}
                     onChange={e => setSemester(Number(e.target.value))}
                   >
                     <option value={1}>Semester 1</option>
@@ -194,9 +197,9 @@ const MCQ = () => {
               {/* Module */}
               <div style={{ marginBottom: '1.5rem' }}>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Module Code</label>
-                <select 
-                  style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }} 
-                  value={moduleCode} 
+                <select
+                  style={{ width: '100%', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none', cursor: 'pointer', appearance: 'auto' }}
+                  value={moduleCode}
                   onChange={e => setModuleCode(e.target.value)}
                 >
                   <option value="">-- Select Module --</option>
@@ -221,24 +224,24 @@ const MCQ = () => {
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '12px', color: '#475569', marginBottom: '8px' }}>From Lecture</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      value={lectureFrom} 
-                      onChange={e => setLectureFrom(e.target.value)} 
-                      placeholder="1" 
-                      style={{ width: '100%', padding: '12px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }} 
+                    <input
+                      type="number"
+                      min="1"
+                      value={lectureFrom}
+                      onChange={e => setLectureFrom(e.target.value)}
+                      placeholder="1"
+                      style={{ width: '100%', padding: '12px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '12px', color: '#475569', marginBottom: '8px' }}>To Lecture</label>
-                    <input 
-                      type="number" 
-                      min="1" 
-                      value={lectureTo} 
-                      onChange={e => setLectureTo(e.target.value)} 
-                      placeholder="5" 
-                      style={{ width: '100%', padding: '12px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }} 
+                    <input
+                      type="number"
+                      min="1"
+                      value={lectureTo}
+                      onChange={e => setLectureTo(e.target.value)}
+                      placeholder="5"
+                      style={{ width: '100%', padding: '12px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }}
                     />
                   </div>
                 </div>
@@ -247,21 +250,26 @@ const MCQ = () => {
               {/* Number of Questions */}
               <div style={{ marginBottom: '2rem' }}>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '8px', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Number of Questions</label>
-                <input 
-                  type="number" 
-                  min="3" 
-                  max="30" 
-                  value={numQuestions} 
-                  onChange={e => setNumQuestions(Number(e.target.value))} 
-                  style={{ width: '200px', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }} 
+                <input
+                  type="number"
+                  min="3"
+                  max="30"
+                  value={numQuestions}
+                  onChange={e => setNumQuestions(Number(e.target.value))}
+                  onInvalid={e => {
+                    e.preventDefault();
+                    setError('Value must be between 3 and 30.');
+                  }}
+                  style={{ width: '200px', padding: '12px 16px', backgroundColor: '#f1f5f9', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }}
+                  required
                 />
                 <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#64748b' }}>Maximum 30 questions</p>
               </div>
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
-                disabled={generating} 
+              <button
+                type="submit"
+                disabled={generating}
                 style={{ width: '100%', padding: '16px', backgroundColor: '#2563eb', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '16px', fontWeight: 600, cursor: generating ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', transition: 'background-color 0.2s', opacity: generating ? 0.7 : 1 }}
               >
                 {generating ? '⏳ Generating MCQs…' : '✨ Generate MCQ Set'}
@@ -271,7 +279,7 @@ const MCQ = () => {
 
           {/* Right Column - Info Card */}
           <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '400px' }}>
-            
+
             {/* AI Generation Info */}
             <div style={{ backgroundColor: '#f3e8ff', borderRadius: '16px', padding: '1.5rem', border: 'none' }}>
               <h4 style={{ margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px', color: '#1e293b', fontSize: '16px', fontWeight: 600 }}>

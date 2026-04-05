@@ -155,15 +155,19 @@ const createResource = async (req, res) => {
 // @access Public (auth optional)
 const getResources = async (req, res) => {
   try {
-    const { year, semester, moduleCode, resourceType } = req.query;
+    const { year, semester, moduleCode, resourceType, uploader } = req.query;
     const filter = {};
     if (year) filter.year = Number(year);
     if (semester) filter.semester = Number(semester);
     if (moduleCode) filter.moduleCode = moduleCode.toUpperCase();
     if (resourceType) filter.resourceType = resourceType;
+
+    if (uploader) filter.uploader = uploader;
+    
     if (!isAdminUser(req.user)) {
       filter['moderation.isHiddenFromStudents'] = { $ne: true };
     }
+
 
     const resources = await Resource.find(filter)
       .populate('uploader', 'username email')
@@ -290,4 +294,55 @@ const recordDownload = async (req, res) => {
   }
 };
 
-module.exports = { createResource, getResources, getResourceById, rateResource, generateSummary, recordDownload };
+// @desc  Delete a resource
+// @route DELETE /api/resources/:id
+// @access Private
+const deleteResource = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+    // Only uploader or admin can delete
+    if (resource.uploader.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized to delete this resource' });
+    }
+
+    await resource.deleteOne();
+    res.json({ message: 'Resource removed' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc  Update a resource
+// @route PUT /api/resources/:id
+// @access Private
+const updateResource = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id);
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+    // Only uploader or admin can update
+    if (resource.uploader.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+      return res.status(401).json({ message: 'Not authorized to update this resource' });
+    }
+
+    const { title, year, semester, moduleCode, resourceType, lectureNo, lectureTitle, ytLink } = req.body;
+
+    if (title) resource.title = title;
+    if (year) resource.year = Number(year);
+    if (semester) resource.semester = Number(semester);
+    if (moduleCode) resource.moduleCode = moduleCode.toUpperCase();
+    if (resourceType) resource.resourceType = resourceType;
+    if (lectureNo !== undefined) resource.lectureNo = lectureNo ? Number(lectureNo) : null;
+    if (lectureTitle !== undefined) resource.lectureTitle = lectureTitle;
+    if (ytLink !== undefined) resource.ytLink = ytLink;
+
+    const updatedResource = await resource.save();
+    res.json(updatedResource);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { createResource, getResources, getResourceById, rateResource, generateSummary, recordDownload, deleteResource, updateResource };

@@ -7,6 +7,8 @@ const {
   rateResource,
   generateSummary,
   recordDownload,
+  deleteResource,
+  updateResource,
 } = require('../controllers/resourceController');
 const { protect } = require('../middleware/auth');
 const upload = require('../middleware/upload');
@@ -19,6 +21,12 @@ router.get('/', protect, getResources);
 
 // GET /api/resources/:id
 router.get('/:id', protect, getResourceById);
+
+// PUT /api/resources/:id
+router.put('/:id', protect, updateResource);
+
+// DELETE /api/resources/:id
+router.delete('/:id', protect, deleteResource);
 
 // POST /api/resources/:id/rate
 router.post('/:id/rate', protect, rateResource);
