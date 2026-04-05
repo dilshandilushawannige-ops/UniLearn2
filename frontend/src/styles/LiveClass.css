@@ -1,3 +1,326 @@
+/* Modern Form Modal Wrapper */
+.live-form-modal-wrapper {
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+.live-form-modern {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  background: white;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  min-height: 600px;
+}
+
+/* Sidebar Styles */
+.live-form-sidebar {
+  background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
+  padding: 2.5rem 2rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.sidebar-icon {
+  width: 64px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.sidebar-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+  color: white;
+}
+
+.sidebar-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0 0 2rem 0;
+}
+
+.sidebar-kuppi-info {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  backdrop-filter: blur(10px);
+}
+
+.kuppi-info-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.kuppi-info-text {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.kuppi-info-text strong {
+  color: white;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-features {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.9rem;
+}
+
+.feature-dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Form Content Styles */
+.live-form-content {
+  padding: 2.5rem 3rem;
+  position: relative;
+  background: #f8fafc;
+}
+
+.form-close-btn {
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: #e2e8f0;
+  color: #64748b;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.form-close-btn:hover {
+  background: #cbd5e1;
+  color: #1e293b;
+}
+
+.form-section {
+  margin-bottom: 2rem;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #3b82f6;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin: 0 0 1.25rem 0;
+}
+
+.form-field {
+  margin-bottom: 1.25rem;
+}
+
+.form-field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 0.5rem;
+}
+
+.modern-input,
+.modern-select,
+.modern-textarea {
+  width: 100%;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.modern-input:focus,
+.modern-select:focus,
+.modern-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modern-input::placeholder,
+.modern-textarea::placeholder {
+  color: #cbd5e1;
+}
+
+.modern-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.modern-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-row-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  font-size: 1.1rem;
+  color: #94a3b8;
+}
+
+.modern-input.with-icon {
+  padding-left: 3rem;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.btn-cancel:hover {
+  background: #e2e8f0;
+}
+
+.btn-submit {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-submit:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+}
+
+.btn-submit:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .live-form-modern {
+    grid-template-columns: 1fr;
+  }
+
+  .live-form-sidebar {
+    padding: 2rem 1.5rem;
+  }
+
+  .sidebar-features {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .live-form-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-row-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+  }
+}
+
+/* Old form styles - keeping for backward compatibility */
 .live-class-page {
   display: grid;
   gap: 1rem;
@@ -277,4 +600,39 @@
   .live-modal-actions {
     flex-direction: column-reverse;
   }
+}
+
+
+/* Kuppi Request Banner */
+.kuppi-request-banner {
+  background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+  border: 2px solid #93c5fd;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.banner-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.banner-content {
+  flex: 1;
+}
+
+.banner-content strong {
+  display: block;
+  color: #1e40af;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.banner-content p {
+  margin: 0;
+  color: #475569;
+  font-size: 0.9rem;
 }
