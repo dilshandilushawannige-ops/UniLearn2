@@ -6,6 +6,7 @@ import { modulesAPI } from '../api/modules';
 import { moderationAPI } from '../api/moderation';
 import { useAuth } from '../context/AuthContext';
 import ModerationReportModal from '../components/ModerationReportModal';
+import resourceIcon from '../assets/resource.png';
 import '../styles/ModerationDashboard.css';
 
 const RESOURCE_TYPES = ['lecture_pdf', 'short_note', 'past_paper', 'yt_link', 'other'];
@@ -287,6 +288,76 @@ const DashboardResources = () => {
 
   return (
     <div>
+      {/* ── Page Header ────────────────────────────────────────────────────── */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: '700', letterSpacing: '1px', textTransform: 'uppercase' }}>DASHBOARD</span>
+          <svg style={{ color: '#cbd5e1' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          <span style={{ color: '#3b82f6', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '1px', textTransform: 'uppercase' }}>RESOURCE</span>
+        </div>
+        <h1 style={{ margin: '0 0 0.5rem 0', fontSize: '2.5rem', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img src={resourceIcon} alt="Resource Icon" width="36" height="36" style={{ flexShrink: 0, objectFit: 'contain' }} />
+          Learning Resources
+        </h1>
+        <p style={{ margin: 0, color: '#64748b', fontSize: '1.1rem', fontWeight: '400' }}>
+          Manage and discover {resources.length} curated academic materials.
+        </p>
+      </div>
+
+      {/* ── Filters ───────────────────────────────────────────────────────── */}
+      <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+        <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+          <select style={{ width: '100%', padding: '0.6rem 2rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', color: '#334155', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', appearance: 'none' }} value={filterYear} onChange={e => { setFilterYear(Number(e.target.value)); setFilterModule(''); }}>
+            <option value={1}>📅 Year: Year 1</option>
+            <option value={2}>📅 Year: Year 2</option>
+            <option value={3}>📅 Year: Year 3</option>
+            <option value={4}>📅 Year: Year 4</option>
+          </select>
+          <svg style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+          <select style={{ width: '100%', padding: '0.6rem 2rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', color: '#334155', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', appearance: 'none' }} value={filterSem} onChange={e => { setFilterSem(Number(e.target.value)); setFilterModule(''); }}>
+            <option value={1}>📚 Semester: Sem 1</option>
+            <option value={2}>📚 Semester: Sem 2</option>
+          </select>
+          <svg style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+          <select style={{ width: '100%', padding: '0.6rem 2rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', color: '#334155', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', appearance: 'none' }} value={filterModule} onChange={e => setFilterModule(e.target.value)}>
+            <option value="">≡ Module: All</option>
+            {modules.map(m => (
+              <option key={m._id} value={m.moduleCode}>
+                ≡ Module: {m.moduleCode} - {m.moduleName}
+              </option>
+            ))}
+          </select>
+          <svg style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+          <select style={{ width: '100%', padding: '0.6rem 2rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', color: '#334155', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', appearance: 'none' }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="">📋 Type: All</option>
+            <option value="lecture_pdf">📋 Type: Lecture PDF</option>
+            <option value="short_note">📋 Type: Short Note</option>
+            <option value="past_paper">📋 Type: Past Paper</option>
+            <option value="yt_link">📋 Type: YT Link</option>
+            <option value="other">📋 Type: Other</option>
+          </select>
+          <svg style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+
+        <div style={{ position: 'relative', flex: '1', minWidth: '160px' }}>
+          <select style={{ width: '100%', padding: '0.6rem 2rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#ffffff', color: '#334155', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', appearance: 'none' }} value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="most_viewed">⭐ Sort: Most Viewed</option>
+            <option value="highest_rated">⭐ Sort: Highest Rated</option>
+            <option value="most_downloaded">⭐ Sort: Most Downloaded</option>
+          </select>
+          <svg style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: '#94a3b8' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
+      </div>
+
       {/* Resource List */}
       <div className="resources-grid">
         {!listLoading && filteredResources.map(r => (
@@ -415,7 +486,7 @@ const DashboardResources = () => {
                   {!modLoading && modItems.map((item) => {
                     const suspended = item.submittedBy?.suspendedUntil && new Date(item.submittedBy.suspendedUntil).getTime() > Date.now();
                     const initials = (item.submittedBy?.username || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-                    
+
                     return (
                       <tr key={item._id}>
                         <td>
@@ -486,7 +557,7 @@ const DashboardResources = () => {
                 Showing {((modPage - 1) * modMeta.limit) + 1} of {modMeta.total} items
               </div>
               <div className="pagination-controls">
-                <button 
+                <button
                   className="pagination-btn"
                   disabled={modPage <= 1}
                   onClick={() => setModPage((prev) => Math.max(1, prev - 1))}
@@ -506,7 +577,7 @@ const DashboardResources = () => {
                     3
                   </button>
                 )}
-                <button 
+                <button
                   className="pagination-btn"
                   disabled={modPage >= modMeta.totalPages}
                   onClick={() => setModPage((prev) => Math.min(modMeta.totalPages, prev + 1))}
