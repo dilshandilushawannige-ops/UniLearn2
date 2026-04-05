@@ -110,63 +110,76 @@ const Leaderboard = () => {
           {/* Top 3 Podium */}
           {topThree.length > 0 && (
             <div className="lb-podium-section">
-              <div className="lb-podium">
+              <div className="lb-podium-container">
                 {/* 2nd Place */}
                 {topThree[1] && (
-                  <div className="lb-podium-card silver">
-                    <div className="lb-rank-badge">🥈</div>
-                    <div className="lb-avatar-wrap">
-                      <img
-                        src={topThree[1].avatar || `https://ui-avatars.com/api/?name=${topThree[1].username}&background=c0c0c0&color=fff&size=128`}
-                        alt={topThree[1].username}
-                        className="lb-avatar"
-                      />
+                  <div className="lb-podium-col rank-2">
+                    <div className="lb-podium-avatar-container">
+                      <div className="lb-podium-medal">
+                        <img src="/src/assets/2ndmedal.png" alt="2nd Place" />
+                      </div>
+                      <div className="lb-avatar-ring rank-2-ring">
+                        <img
+                          src={topThree[1].avatar || `https://ui-avatars.com/api/?name=${topThree[1].username}&background=ffb3c6&color=fff&size=128`}
+                          alt={topThree[1].username}
+                          className="lb-podium-avatar"
+                        />
+                      </div>
                     </div>
-                    <h3 className="lb-podium-name">{topThree[1].username}</h3>
-                    <div className="lb-podium-rating">{topThree[1].rating} pts</div>
-                    <div className="lb-podium-stats">
-                      <span className="lb-stat-w">{topThree[1].wins}W</span>
-                      <span className="lb-stat-l">{topThree[1].losses}L</span>
+                    <div className="lb-podium-name">{topThree[1].username}</div>
+                    <div className="lb-podium-qp">{topThree[1].rating} QP</div>
+                    <div className="lb-podium-block block-2">
+                      <span className="lb-podium-rank">2</span>
                     </div>
                   </div>
                 )}
 
                 {/* 1st Place */}
                 {topThree[0] && (
-                  <div className="lb-podium-card gold">
-                    <div className="lb-rank-badge crown">👑</div>
-                    <div className="lb-avatar-wrap champion">
-                      <img
-                        src={topThree[0].avatar || `https://ui-avatars.com/api/?name=${topThree[0].username}&background=ffd700&color=000&size=128`}
-                        alt={topThree[0].username}
-                        className="lb-avatar"
-                      />
+                  <div className="lb-podium-col rank-1">
+                    <div className="lb-podium-avatar-container">
+                      <div className="lb-podium-crown">
+                        <img 
+                          src="/src/assets/reborn.png" 
+                          onError={(e) => { e.target.src = '/src/assets/1stmedal.png' }} 
+                          alt="1st Place" 
+                        />
+                      </div>
+                      <div className="lb-avatar-ring rank-1-ring">
+                        <img
+                          src={topThree[0].avatar || `https://ui-avatars.com/api/?name=${topThree[0].username}&background=a7f3d0&color=000&size=128`}
+                          alt={topThree[0].username}
+                          className="lb-podium-avatar"
+                        />
+                      </div>
                     </div>
-                    <h3 className="lb-podium-name champion-name">{topThree[0].username}</h3>
-                    <div className="lb-podium-rating highlight">{topThree[0].rating} pts</div>
-                    <div className="lb-podium-stats">
-                      <span className="lb-stat-w">{topThree[0].wins}W</span>
-                      <span className="lb-stat-l">{topThree[0].losses}L</span>
+                    <div className="lb-podium-name">{topThree[0].username}</div>
+                    <div className="lb-podium-qp">{topThree[0].rating} QP</div>
+                    <div className="lb-podium-block block-1">
+                      <span className="lb-podium-rank">1</span>
                     </div>
                   </div>
                 )}
 
                 {/* 3rd Place */}
                 {topThree[2] && (
-                  <div className="lb-podium-card bronze">
-                    <div className="lb-rank-badge">🥉</div>
-                    <div className="lb-avatar-wrap">
-                      <img
-                        src={topThree[2].avatar || `https://ui-avatars.com/api/?name=${topThree[2].username}&background=cd7f32&color=fff&size=128`}
-                        alt={topThree[2].username}
-                        className="lb-avatar"
-                      />
+                  <div className="lb-podium-col rank-3">
+                    <div className="lb-podium-avatar-container">
+                      <div className="lb-podium-medal">
+                        <img src="/src/assets/3rdmedal.png" alt="3rd Place" />
+                      </div>
+                      <div className="lb-avatar-ring rank-3-ring">
+                        <img
+                          src={topThree[2].avatar || `https://ui-avatars.com/api/?name=${topThree[2].username}&background=bfdbfe&color=fff&size=128`}
+                          alt={topThree[2].username}
+                          className="lb-podium-avatar"
+                        />
+                      </div>
                     </div>
-                    <h3 className="lb-podium-name">{topThree[2].username}</h3>
-                    <div className="lb-podium-rating">{topThree[2].rating} pts</div>
-                    <div className="lb-podium-stats">
-                      <span className="lb-stat-w">{topThree[2].wins}W</span>
-                      <span className="lb-stat-l">{topThree[2].losses}L</span>
+                    <div className="lb-podium-name">{topThree[2].username}</div>
+                    <div className="lb-podium-qp">{topThree[2].rating} QP</div>
+                    <div className="lb-podium-block block-3">
+                      <span className="lb-podium-rank">3</span>
                     </div>
                   </div>
                 )}
@@ -320,10 +333,10 @@ const Leaderboard = () => {
           <div className="lb-glass-card rules-card">
             <h3>How It Works</h3>
             <ul className="lb-rules-list">
-              <li><span>⚔️</span> Win battles to earn <strong>+25 Rating</strong></li>
-              <li><span>🛡️</span> Draws award <strong>+5 Rating</strong></li>
-              <li><span>💔</span> Losses deduct <strong>-15 Rating</strong></li>
-              <li><span>🔥</span> Build win streaks for bragging rights!</li>
+              <li><img src="/src/assets/swords.png" alt="Win" className="lb-rule-icon" /> Win battles to earn <strong>+25 Rating</strong></li>
+              <li><img src="/src/assets/shield.png" alt="Draw" className="lb-rule-icon" /> Draws award <strong>+5 Rating</strong></li>
+              <li><img src="/src/assets/broken-heart.png" alt="Loss" className="lb-rule-icon" /> Losses deduct <strong>-15 Rating</strong></li>
+              <li><img src="/src/assets/fire.png" alt="Streak" className="lb-rule-icon" /> Build win streaks for bragging rights!</li>
             </ul>
           </div>
         </aside>
