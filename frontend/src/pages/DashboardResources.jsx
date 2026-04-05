@@ -2,7 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams, useOutletContext, useNavigate } from 'react-router-dom';
 import { resourcesAPI } from '../api/resources';
 import { modulesAPI } from '../api/modules';
+import { moderationAPI } from '../api/moderation';
 import { useAuth } from '../context/AuthContext';
+import ModerationReportModal from '../components/ModerationReportModal';
 
 const RESOURCE_TYPES = ['lecture_pdf', 'short_note', 'past_paper', 'yt_link', 'other'];
 
@@ -50,6 +52,7 @@ const getResourceIcon = (type) => {
 
 const DashboardResources = () => {
   const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const outletContext = useOutletContext();
@@ -71,6 +74,21 @@ const DashboardResources = () => {
   const [ratingResource, setRatingResource] = useState(null);
   const [currentRating, setCurrentRating] = useState(0);
   const [submittingRating, setSubmittingRating] = useState(false);
+  const [reportModal, setReportModal] = useState({ open: false, contentType: '', contentId: '', title: '' });
+
+  const [modSearch, setModSearch] = useState('');
+  const [modPage, setModPage] = useState(1);
+  const [modItems, setModItems] = useState([]);
+  const [modMeta, setModMeta] = useState({ page: 1, totalPages: 1, total: 0, limit: 4 });
+  const [modLoading, setModLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user?.currentYear || !user?.currentSemester) return;
+
+    setFilterYear(user.currentYear);
+    setFilterSem(user.currentSemester);
+    setFilterModule('');
+  }, [user?.currentYear, user?.currentSemester]);
 
   const handleRateResource = async () => {
     if (!ratingResource || currentRating === 0) return;
@@ -164,6 +182,95 @@ const DashboardResources = () => {
   }, [filterYear, filterSem, filterModule, filterType]);
 
   useEffect(() => { fetchResources(); }, [fetchResources]);
+
+  const fetchModerationItems = useCallback(async () => {
+    if (!isAdmin) return;
+    setModLoading(true);
+    try {
+      const data = await moderationAPI.getItems({ page: modPage, limit: 4, search: modSearch });
+      setModItems(data.items || []);
+      setModMeta(data.pagination || { page: 1, totalPages: 1, total: 0, limit: 4 });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setModLoading(false);
+    }
+  }, [isAdmin, modPage, modSearch]);
+
+  useEffect(() => {
+    fetchModerationItems();
+  }, [fetchModerationItems]);
+
+  const openReportModal = (contentType, contentId, title) => {
+    setReportModal({ open: true, contentType, contentId, title });
+  };
+
+  const closeReportModal = () => {
+    setReportModal({ open: false, contentType: '', contentId: '', title: '' });
+  };
+
+  const handleReportSubmit = async ({ reason, otherText }) => {
+    try {
+      await moderationAPI.report({
+        contentType: reportModal.contentType,
+        contentId: reportModal.contentId,
+        reason,
+        otherText,
+      });
+      closeReportModal();
+      await fetchResources();
+      if (isAdmin) await fetchModerationItems();
+      alert('Report submitted successfully');
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleRestore = async (itemId) => {
+    try {
+      await moderationAPI.restoreItem(itemId);
+      await fetchModerationItems();
+      await fetchResources();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleDeleteContent = async (itemId) => {
+    if (!window.confirm('Delete this content permanently?')) return;
+    try {
+      await moderationAPI.deleteContent(itemId);
+      await fetchModerationItems();
+      await fetchResources();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleSuspend = async (submittedBy) => {
+    if (!submittedBy?._id) return;
+    const daysRaw = window.prompt('Suspend for how many days?', '3');
+    if (!daysRaw) return;
+    const reason = window.prompt('Suspension reason:', 'Content policy violation');
+    if (!reason) return;
+
+    try {
+      await moderationAPI.suspendUser(submittedBy._id, { days: Number(daysRaw), reason });
+      await fetchModerationItems();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleUnsuspend = async (submittedBy) => {
+    if (!submittedBy?._id) return;
+    try {
+      await moderationAPI.unsuspendUser(submittedBy._id);
+      await fetchModerationItems();
+    } catch (err) {
+      alert(err.message);
+    }
+  };
 
   const filteredResources = resources.filter(r =>
     !searchQuery ||
@@ -348,12 +455,107 @@ const DashboardResources = () => {
                       <span style={{ fontSize: '0.85rem' }}>{r.downloadCount || 0}</span>
                     </a>
                   )}
+
+                  <button
+                    onClick={() => openReportModal('resource', r._id, r.title)}
+                    style={{ background: 'none', border: 'none', color: '#dc2626', display: 'flex', alignItems: 'center', cursor: 'pointer', padding: 0 }}
+                    title="Report content"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 3v18"></path><path d="M19 5H9l-2 3 2 3h10l-2-3 2-3z"></path>
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+
+      {isAdmin && (
+        <div style={{ marginTop: '2rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.8rem' }}>
+            <h2 style={{ margin: 0, color: '#1f2937' }}>Moderation Dashboard</h2>
+            <input
+              value={modSearch}
+              onChange={(e) => { setModSearch(e.target.value); setModPage(1); }}
+              placeholder="Search by title"
+              style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.55rem 0.7rem', minWidth: '220px' }}
+            />
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '900px' }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Title</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Submitted By</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Report Count</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Status</th>
+                  <th style={{ textAlign: 'left', borderBottom: '1px solid #e2e8f0', padding: '0.55rem 0.4rem' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {!modLoading && modItems.map((item) => {
+                  const suspended = item.submittedBy?.suspendedUntil && new Date(item.submittedBy.suspendedUntil).getTime() > Date.now();
+                  return (
+                    <tr key={item._id}>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>{item.title}</td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>{item.submittedBy?.username || 'Unknown'}</td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>{item.reportCount}</td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>
+                        {item.status === 'auto_hidden' ? (
+                          <span style={{ background: '#fee2e2', color: '#991b1b', borderRadius: '999px', padding: '0.2rem 0.55rem', fontSize: '0.75rem', fontWeight: 700 }}>AUTO-HIDDEN</span>
+                        ) : item.status === 'flagged' ? (
+                          <span style={{ background: '#fef3c7', color: '#92400e', borderRadius: '999px', padding: '0.2rem 0.55rem', fontSize: '0.75rem', fontWeight: 700 }}>FLAGGED</span>
+                        ) : (
+                          <span style={{ background: '#e2e8f0', color: '#334155', borderRadius: '999px', padding: '0.2rem 0.55rem', fontSize: '0.75rem', fontWeight: 700 }}>NORMAL</span>
+                        )}
+                      </td>
+                      <td style={{ borderBottom: '1px solid #f1f5f9', padding: '0.55rem 0.4rem' }}>
+                        <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                          <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#0f766e', color: '#fff', cursor: 'pointer' }} onClick={() => handleRestore(item._id)}>Restore</button>
+                          <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#dc2626', color: '#fff', cursor: 'pointer' }} onClick={() => handleDeleteContent(item._id)}>Delete</button>
+                          {!suspended && <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#b45309', color: '#fff', cursor: 'pointer' }} onClick={() => handleSuspend(item.submittedBy)}>Suspend</button>}
+                          {suspended && <button style={{ border: 'none', borderRadius: '8px', padding: '0.35rem 0.55rem', background: '#2563eb', color: '#fff', cursor: 'pointer' }} onClick={() => handleUnsuspend(item.submittedBy)}>Unsuspend</button>}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+                {!modLoading && modItems.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '0.75rem 0.4rem', color: '#64748b' }}>No moderation records found.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ marginTop: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ color: '#64748b', fontSize: '0.9rem' }}>Page {modMeta.page} of {modMeta.totalPages} ({modMeta.total} items)</span>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                style={{ border: '1px solid #cbd5e1', background: '#fff', borderRadius: '8px', padding: '0.35rem 0.6rem', cursor: modPage <= 1 ? 'not-allowed' : 'pointer' }}
+                disabled={modPage <= 1}
+                onClick={() => setModPage((prev) => Math.max(1, prev - 1))}
+              >Prev</button>
+              <button
+                style={{ border: '1px solid #cbd5e1', background: '#fff', borderRadius: '8px', padding: '0.35rem 0.6rem', cursor: modPage >= modMeta.totalPages ? 'not-allowed' : 'pointer' }}
+                disabled={modPage >= modMeta.totalPages}
+                onClick={() => setModPage((prev) => Math.min(modMeta.totalPages, prev + 1))}
+              >Next</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <ModerationReportModal
+        open={reportModal.open}
+        title={reportModal.title}
+        onClose={closeReportModal}
+        onSubmit={handleReportSubmit}
+      />
 
       {ratingModalOpen && (
         <div className="rating-modal-overlay" onClick={() => setRatingModalOpen(false)}>

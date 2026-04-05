@@ -9,12 +9,16 @@ import DashboardLayout from './layouts/DashboardLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import AdminDashboard from './pages/AdminDashboard';
 import DashboardHome from './pages/DashboardHome';
 import DashboardResources from './pages/DashboardResources';
 import DashboardUpload from './pages/DashboardUpload';
 import DashboardStudyPlan from './pages/DashboardStudyPlan';
 import DashboardProfile from './pages/DashboardProfile';
 import Resources from './pages/Resources';
+
+import KuppiRequest from './pages/KuppiRequest';
+
 import ResourceDetails from './pages/ResourceDetails';
 import ResourceSummary from './pages/ResourceSummary';
 import LiveClass from './pages/LiveClass';
@@ -23,6 +27,7 @@ import MCQ from './pages/MCQ';
 import GameDashboard from './pages/GameDashboard';
 import GameInvite from './pages/GameInvite';
 import QuizBattle from './pages/QuizBattle';
+import Leaderboard from './pages/Leaderboard';
 import StackOver from './pages/StackOver';
 import QuestionDetails from './pages/QuestionDetails';
 import TopContributors from './pages/TopContributors';
@@ -48,15 +53,26 @@ const AppContent = () => {
           <Route path="upload" element={<DashboardUpload />} />
           <Route path="profile" element={<DashboardProfile />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
+
+          <Route path="requests" element={<KuppiRequest />} />
+
           <Route path="questions" element={<StackOver />} />
           <Route path="questions/:id" element={<QuestionDetails />} />
           <Route path="top-contributors" element={<TopContributors />} />
+
           <Route path="mcq" element={<MCQ />} />
           <Route path="live-class" element={<LiveClass />} />
           <Route path="games" element={<GameDashboard />} />
           <Route path="games/invite/:studentId" element={<GameInvite />} />
           <Route path="games/battle/:battleId" element={<QuizBattle />} />
+          <Route path="games/leaderboard" element={<Leaderboard />} />
         </Route>
+
+        {/* Admin Dashboard */}
+        <Route 
+          path="/admin-dashboard" 
+          element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} 
+        />
 
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Register />} />
@@ -71,6 +87,12 @@ const AppContent = () => {
           element={<ProtectedRoute><Resources /></ProtectedRoute>}
         />
         <Route
+
+          path="/resource-request"
+          element={<ProtectedRoute><KuppiRequest /></ProtectedRoute>}
+        />
+        <Route
+
           path="/live-class"
           element={<ProtectedRoute><LiveClass /></ProtectedRoute>}
         />

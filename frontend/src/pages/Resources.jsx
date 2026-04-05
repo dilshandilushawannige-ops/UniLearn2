@@ -63,6 +63,20 @@ const Resources = () => {
   const [uploadMsg, setUploadMsg] = useState('');
   const [uploadError, setUploadError] = useState('');
 
+  useEffect(() => {
+    if (!user?.currentYear || !user?.currentSemester) return;
+
+    setFilterYear(user.currentYear);
+    setFilterSem(user.currentSemester);
+    setFilterModule('');
+    setForm((prev) => ({
+      ...prev,
+      year: user.currentYear,
+      semester: user.currentSemester,
+      moduleCode: '',
+    }));
+  }, [user?.currentYear, user?.currentSemester]);
+
   // ── Fetch modules when filter year/sem changes ─────────────────────────────
   useEffect(() => {
     modulesAPI.getModules({ year: filterYear, semester: filterSem }).then(setModules).catch(() => { });

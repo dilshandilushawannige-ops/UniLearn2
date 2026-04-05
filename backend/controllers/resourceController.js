@@ -2,7 +2,11 @@
 const Resource = require('../models/Resource');
 const { uploadToCloudinary } = require('../services/cloudinaryService');
 const { extractTextFromPDF } = require('../services/pdfService');
+
+const { isAdminUser } = require('../utils/admin');
+
 const { generateResourceSummary } = require('../services/geminiService');
+
 
 // @desc  Upload / create a learning resource
 // @route POST /api/resources
@@ -157,7 +161,13 @@ const getResources = async (req, res) => {
     if (semester) filter.semester = Number(semester);
     if (moduleCode) filter.moduleCode = moduleCode.toUpperCase();
     if (resourceType) filter.resourceType = resourceType;
+
     if (uploader) filter.uploader = uploader;
+    
+    if (!isAdminUser(req.user)) {
+      filter['moderation.isHiddenFromStudents'] = { $ne: true };
+    }
+
 
     const resources = await Resource.find(filter)
       .populate('uploader', 'username email')
@@ -181,6 +191,9 @@ const getResourceById = async (req, res) => {
     ).populate('uploader', 'username email');
 
     if (!resource) return res.status(404).json({ message: 'Resource not found' });
+    if (resource?.moderation?.isHiddenFromStudents && !isAdminUser(req.user)) {
+      return res.status(404).json({ message: 'Resource not found' });
+    }
     res.json(resource);
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -20,17 +20,21 @@ export const SocketProvider = ({ children }) => {
       return;
     }
 
-    // Create socket connection
-    // Remove /api suffix from VITE_API_URL for socket connection
-    const socketUrl = import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace('/api', '')
-      : 'http://localhost:5000';
+    // Resolve socket URL from explicit socket URL, API URL, or local backend default.
+    const explicitSocketUrl = import.meta.env.VITE_SOCKET_URL;
+    const apiBase = import.meta.env.VITE_API_URL;
+    const socketUrl = explicitSocketUrl
+      || (apiBase ? apiBase.replace(/\/api\/?$/, '') : 'http://localhost:5001');
     
     const newSocket = io(socketUrl, {
       auth: {
         token,
       },
       autoConnect: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 10000,
     });
 
     newSocket.on('connect', () => {

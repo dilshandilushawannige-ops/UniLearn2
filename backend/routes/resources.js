@@ -17,10 +17,10 @@ const upload = require('../middleware/upload');
 router.post('/', protect, upload.single('file'), createResource);
 
 // GET /api/resources?year=&semester=&moduleCode=&resourceType=
-router.get('/', getResources);
+router.get('/', protect, getResources);
 
 // GET /api/resources/:id
-router.get('/:id', getResourceById);
+router.get('/:id', protect, getResourceById);
 
 // PUT /api/resources/:id
 router.put('/:id', protect, updateResource);

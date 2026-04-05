@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { notificationsAPI } from '../api/notifications';
 import '../styles/UserDashboard.css';
 
 // Import all PNG icons from assets folder
@@ -15,27 +16,28 @@ import mcqIcon from '../assets/mcq-icon.png';
 import searchIcon from '../assets/search-icon.png';
 import notificationIcon from '../assets/notification-icon.png';
 import gamesIcon from '../assets/games-icon.png';
-
-
-const QnaIcon = () => (
-  <div style={{
-    width: '24px',
-    height: '24px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '16px'
-  }}>
-    💬
-  </div>
-);
+import requestsIcon from '../assets/requests-icon.png';
+import topContributorsIcon from '../assets/star-icon.png';
+import stackOverflowNavIcon from '../assets/docs-icon.png';
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+   const isAdmin = user?.role === 'admin';
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showNotificationMenu, setShowNotificationMenu] = useState(false);
+  const [notifications, setNotifications] = useState({
+    unreadCount: 0,
+    groups: {
+      cancelledClasses: [],
+      upcomingReminders: [],
+      kuppiUpdates: [],
+    },
+  });
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const notificationRef = useRef(null);
 
   const isActive = (path) => location.pathname === path;
 
@@ -44,52 +46,168 @@ const DashboardLayout = () => {
     navigate('/login');
   };
 
+  const fetchNotifications = async () => {
+    setNotificationLoading(true);
+    try {
+      const data = await notificationsAPI.getAll();
+      setNotifications(data);
+    } catch (err) {
+      console.error('Failed to load notifications', err);
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    const timer = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const onClickOutside = (event) => {
+      if (notificationRef.current && !notificationRef.current.contains(event.target)) {
+        setShowNotificationMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  const toggleNotifications = async () => {
+    const willOpen = !showNotificationMenu;
+    setShowNotificationMenu(willOpen);
+    if (willOpen) {
+      await notificationsAPI.markAllRead();
+      await fetchNotifications();
+    }
+  };
+
+  const dismissNotification = async (id) => {
+    await notificationsAPI.dismiss(id);
+    await fetchNotifications();
+  };
+
+  const clearAllNotifications = async () => {
+    await notificationsAPI.clearAll();
+    await fetchNotifications();
+  };
+
+  const renderNotificationSection = (title, items) => (
+    <div className="notif-section">
+      <p className="notif-section-title">{title}</p>
+      {items.length === 0 && <p className="notif-empty">No notifications</p>}
+      {items.map((item) => (
+        <div key={item._id} className="notif-item">
+          <div>
+            <p className="notif-item-title">{item.title}</p>
+            <p className="notif-item-message">{item.message}</p>
+          </div>
+          <button className="notif-dismiss" onClick={() => dismissNotification(item._id)}>Dismiss</button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const adminNavItems = [
+    {
+      to: '/user-dashboard',
+      label: 'Dashboard',
+      icon: '🏠',
+      match: ['/user-dashboard'],
+    },
+    {
+      to: '/user-dashboard/resources',
+      label: 'Moderation',
+      icon: '🛡️',
+      match: ['/user-dashboard/resources'],
+    },
+    {
+      to: '/user-dashboard/live-class',
+      label: 'Live Classes',
+      icon: '🖥️',
+      match: ['/user-dashboard/live-class'],
+    },
+    {
+      to: '/user-dashboard/live-class',
+      label: 'Attendance',
+      icon: '✅',
+      match: ['/user-dashboard/live-class'],
+    },
+    {
+      to: '/user-dashboard/requests',
+      label: 'Kuppi',
+      icon: '🧑‍🏫',
+      match: ['/user-dashboard/requests'],
+    },
+  ];
+
+  const isAdminNavActive = (item) =>
+    item.match.some((path) => (path === '/user-dashboard' ? location.pathname === path : location.pathname.startsWith(path)));
+
   return (
     <div className="user-dashboard">
       {/* Sidebar */}
       <aside className="dashboard-sidebar">
         <div className="sidebar-header">
           <h2>UniLearnHub</h2>
-          <p>Academic Editorial</p>
+          <p>{isAdmin ? 'Admin Panel' : 'Academic Editorial'}</p>
         </div>
 
         <nav className="sidebar-nav">
-          <Link to="/user-dashboard" className={`nav-item ${isActive('/user-dashboard') ? 'active' : ''}`}>
-            <img src={dashboardIcon} alt="Dashboard" className="nav-icon-img" />
-            Dashboard
-          </Link>
-          <Link to="/user-dashboard/resources" className={`nav-item ${isActive('/user-dashboard/resources') ? 'active' : ''}`}>
-            <img src={resourcesIcon} alt="Resources" className="nav-icon-img" />
-            Resources
-          </Link>
-          <Link to="/user-dashboard/upload" className={`nav-item ${isActive('/user-dashboard/upload') ? 'active' : ''}`}>
-            <img src={uploadIcon} alt="Upload" className="nav-icon-img" />
-            Upload Resource
-          </Link>
-          <Link to="/user-dashboard/study-plans" className={`nav-item ${isActive('/user-dashboard/study-plans') ? 'active' : ''}`}>
-            <img src={studyPlanIcon} alt="Study Plans" className="nav-icon-img" />
-            Study Plans
-          </Link>
-          <Link to="/user-dashboard/live-class" className={`nav-item ${isActive('/user-dashboard/live-class') ? 'active' : ''}`}>
-            <img src={liveClassIcon} alt="Live Class" className="nav-icon-img" />
-            Live Class
-          </Link>
-          <Link to="/user-dashboard/mcq" className={`nav-item ${isActive('/user-dashboard/mcq') ? 'active' : ''}`}>
-            <img src={mcqIcon} alt="MCQ Practice" className="nav-icon-img" />
-            MCQ Practice
-          </Link>
-          <Link to="/user-dashboard/games" className={`nav-item ${isActive('/user-dashboard/games') ? 'active' : ''}`}>
-            <img src={gamesIcon} alt="Games" className="nav-icon-img" />
-            Games
-          </Link>
-          <Link to="/user-dashboard/questions" className={`nav-item ${isActive('/user-dashboard/questions') ? 'active' : ''}`}>
-            <QnaIcon />
-            Stack Overflow
-          </Link>
-          <Link to="/user-dashboard/top-contributors" className={`nav-item ${isActive('/user-dashboard/top-contributors') ? 'active' : ''}`}>
-            <span style={{ fontSize: 18, marginRight: 6 }}>🏆</span>
-            Top Contributors
-          </Link>
+
+          {isAdmin ? (
+            adminNavItems.map((item) => (
+              <Link key={item.label} to={item.to} className={`nav-item ${isAdminNavActive(item) ? 'active' : ''}`}>
+                <span className="admin-nav-icon">{item.icon}</span>
+                {item.label}
+              </Link>
+            ))
+          ) : (
+            <>
+              <Link to="/user-dashboard" className={`nav-item ${isActive('/user-dashboard') ? 'active' : ''}`}>
+                <img src={dashboardIcon} alt="Dashboard" className="nav-icon-img" />
+                Dashboard
+              </Link>
+              <Link to="/user-dashboard/resources" className={`nav-item ${isActive('/user-dashboard/resources') ? 'active' : ''}`}>
+                <img src={resourcesIcon} alt="Resources" className="nav-icon-img" />
+                Resources
+              </Link>
+              <Link to="/user-dashboard/upload" className={`nav-item ${isActive('/user-dashboard/upload') ? 'active' : ''}`}>
+                <img src={uploadIcon} alt="Upload" className="nav-icon-img" />
+                Upload Resource
+              </Link>
+              <Link to="/user-dashboard/study-plans" className={`nav-item ${isActive('/user-dashboard/study-plans') ? 'active' : ''}`}>
+                <img src={studyPlanIcon} alt="Study Plans" className="nav-icon-img" />
+                Study Plans
+              </Link>
+              <Link to="/user-dashboard/live-class" className={`nav-item ${isActive('/user-dashboard/live-class') ? 'active' : ''}`}>
+                <img src={liveClassIcon} alt="Live Class" className="nav-icon-img" />
+                Live Class
+              </Link>
+              <Link to="/user-dashboard/mcq" className={`nav-item ${isActive('/user-dashboard/mcq') ? 'active' : ''}`}>
+                <img src={mcqIcon} alt="MCQ Practice" className="nav-icon-img" />
+                MCQ Practice
+              </Link>
+              <Link to="/user-dashboard/games" className={`nav-item ${isActive('/user-dashboard/games') ? 'active' : ''}`}>
+                <img src={gamesIcon} alt="Games" className="nav-icon-img" />
+                Games
+              </Link>
+              <Link to="/user-dashboard/requests" className={`nav-item ${isActive('/user-dashboard/requests') ? 'active' : ''}`}>
+                <img src={requestsIcon} alt="Requests" className="nav-icon-img" />
+                Requests
+              </Link>
+              <Link to="/user-dashboard/questions" className={`nav-item ${isActive('/user-dashboard/questions') ? 'active' : ''}`}>
+                <img src={stackOverflowNavIcon} alt="" className="nav-icon-img" />
+                Stack Overflow
+              </Link>
+              <Link to="/user-dashboard/top-contributors" className={`nav-item ${isActive('/user-dashboard/top-contributors') ? 'active' : ''}`}>
+                <img src={topContributorsIcon} alt="" className="nav-icon-img" />
+                Top Contributors
+              </Link>
+            </>
+          )}
+
         </nav>
 
         {/* User Profile Section */}
@@ -138,11 +256,38 @@ const DashboardLayout = () => {
             />
           </div>
           <div className="header-actions">
-            <Link to="/user-dashboard/resources" className="header-link">Archive</Link>
-            <Link to="/user-dashboard/live-class" className="header-link">Community</Link>
-            <button className="notification-btn">
-              <img src={notificationIcon} alt="Notifications" className="notification-icon-img" />
-            </button>
+            {!isAdmin && (
+              <>
+                <Link to="/user-dashboard/resources" className="header-link">Archive</Link>
+                <Link to="/user-dashboard/live-class" className="header-link">Community</Link>
+              </>
+            )}
+            <div className="notification-wrap" ref={notificationRef}>
+              <button className="notification-btn" onClick={toggleNotifications}>
+                <img src={notificationIcon} alt="Notifications" className="notification-icon-img" />
+                {notifications.unreadCount > 0 && (
+                  <span className="notification-badge">{notifications.unreadCount > 99 ? '99+' : notifications.unreadCount}</span>
+                )}
+              </button>
+
+              {showNotificationMenu && (
+                <div className="notification-dropdown">
+                  <div className="notif-head">
+                    <strong>Notifications</strong>
+                    <button className="notif-clear" onClick={clearAllNotifications}>Clear All</button>
+                  </div>
+
+                  {notificationLoading && <p className="notif-empty">Loading...</p>}
+                  {!notificationLoading && (
+                    <>
+                      {renderNotificationSection('Cancelled Classes', notifications.groups?.cancelledClasses || [])}
+                      {renderNotificationSection('Upcoming Reminders', notifications.groups?.upcomingReminders || [])}
+                      {renderNotificationSection('Kuppi Updates', notifications.groups?.kuppiUpdates || [])}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

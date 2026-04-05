@@ -1,0 +1,70 @@
+.mod-report-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1600;
+  padding: 1rem;
+}
+
+.mod-report-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  width: min(460px, 95vw);
+  padding: 1rem;
+}
+
+.mod-close {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.45rem;
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.mod-report-modal h3 {
+  margin: 0;
+  color: #0f172a;
+}
+
+.mod-subtitle {
+  margin-top: 0.35rem;
+  color: #64748b;
+  font-size: 0.9rem;
+}
+
+.mod-form {
+  margin-top: 0.8rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.mod-radio {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #334155;
+}
+
+.mod-form textarea {
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0.65rem;
+  resize: vertical;
+}
+
+.mod-submit {
+  border: none;
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  font-weight: 600;
+  color: #fff;
+  background: #dc2626;
+  cursor: pointer;
+}
