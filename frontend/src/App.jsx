@@ -13,6 +13,7 @@ import DashboardHome from './pages/DashboardHome';
 import DashboardResources from './pages/DashboardResources';
 import DashboardUpload from './pages/DashboardUpload';
 import DashboardStudyPlan from './pages/DashboardStudyPlan';
+import DashboardProfile from './pages/DashboardProfile';
 import Resources from './pages/Resources';
 import ResourceDetails from './pages/ResourceDetails';
 import ResourceSummary from './pages/ResourceSummary';
@@ -45,6 +46,7 @@ const AppContent = () => {
           <Route path="resources/:id" element={<ResourceDetails />} />
           <Route path="resources/:id/summary" element={<ResourceSummary />} />
           <Route path="upload" element={<DashboardUpload />} />
+          <Route path="profile" element={<DashboardProfile />} />
           <Route path="study-plans" element={<DashboardStudyPlan />} />
           <Route path="questions" element={<StackOver />} />
           <Route path="questions/:id" element={<QuestionDetails />} />

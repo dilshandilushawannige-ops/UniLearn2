@@ -107,13 +107,13 @@ const DashboardLayout = () => {
 
           {showProfileMenu && (
             <div className="profile-dropdown">
-              <div className="profile-dropdown-item">
+              <Link to="/user-dashboard/profile" className="profile-dropdown-item" onClick={() => setShowProfileMenu(false)} style={{ textDecoration: 'none' }}>
                 <span className="dropdown-icon">👤</span>
                 <div>
                   <p className="dropdown-label">Year {user?.currentYear || 1}, Semester {user?.currentSemester || 1}</p>
                   <p className="dropdown-sublabel">Current Academic Period</p>
                 </div>
-              </div>
+              </Link>
               <div className="profile-dropdown-divider"></div>
               <button className="profile-dropdown-item profile-dropdown-logout" onClick={handleLogout}>
                 <span className="dropdown-icon">🚪</span>

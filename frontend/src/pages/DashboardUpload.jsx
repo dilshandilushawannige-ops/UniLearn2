@@ -86,8 +86,14 @@ const DashboardUpload = () => {
         if (!finalTitle || !form.moduleCode || !form.resourceType) {
             return setUploadError('Module Code, and Resource Type are required.');
         }
-        if (form.resourceType === 'lecture_pdf' && !form.lectureNo) {
-            return setUploadError('Lecture No is required for lecture_pdf.');
+        if (form.resourceType === 'lecture_pdf') {
+            if (!form.lectureNo) {
+                return setUploadError('Lecture No is required for lecture_pdf.');
+            }
+            const lecNo = parseInt(form.lectureNo, 10);
+            if (isNaN(lecNo) || lecNo < 1 || lecNo > 15) {
+                return setUploadError('Lecture No must be between 1 and 15.');
+            }
         }
 
         if (form.resourceType !== 'yt_link' && !file) {
@@ -179,7 +185,20 @@ const DashboardUpload = () => {
                             {form.resourceType === 'lecture_pdf' && (
                                 <div style={{ width: '100px', flexGrow: 0 }}>
                                     <label style={{ display: 'block', fontSize: '12px', color: '#475569', marginBottom: '8px' }}>Lecture No.</label>
-                                    <input type="number" min="1" value={form.lectureNo} onChange={e => setForm({ ...form, lectureNo: e.target.value })} placeholder="05" style={{ width: '100%', padding: '12px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }} required />
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="15"
+                                        value={form.lectureNo}
+                                        onChange={e => setForm({ ...form, lectureNo: e.target.value })}
+                                        onInvalid={e => {
+                                            e.preventDefault();
+                                            setUploadError('Lecture No must be between 1 and 15.');
+                                        }}
+                                        placeholder="05"
+                                        style={{ width: '100%', padding: '12px 16px', backgroundColor: '#e2e8f0', border: 'none', borderRadius: '8px', color: '#1e293b', fontSize: '14px', outline: 'none' }}
+                                        required
+                                    />
                                 </div>
                             )}
                             {form.resourceType === 'yt_link' ? (
