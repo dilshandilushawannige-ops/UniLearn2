@@ -5,6 +5,9 @@ import { resourcesAPI } from '../api/resources';
 import { modulesAPI } from '../api/modules';
 import { useAuth } from '../context/AuthContext';
 import Swal from 'sweetalert2';
+import tuplodeIcon from '../assets/Tuplode.png';
+import rdownlodeIcon from '../assets/Rdownlode.png';
+import ratingIcon from '../assets/rating.png';
 
 const getResourceIcon = (type) => {
   switch (type) {
@@ -124,14 +127,83 @@ const DashboardProfile = () => {
     });
   };
 
+
+  const handleAddTag = (e) => {
+    if (e.key === 'Enter' && tagInput.trim()) {
+      e.preventDefault();
+      setTags([...tags, tagInput.trim()]);
+      setTagInput('');
+    }
+  };
+
+  const removeTag = (indexToRemove) => {
+    setTags(tags.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleDrag = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === 'dragenter' || e.type === 'dragover') {
+      setDragActive(true);
+    } else if (e.type === 'dragleave') {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  };
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
     try {
+      const currentResData = await resourcesAPI.getAll({
+        year: editFormData.year,
+        semester: editFormData.semester,
+        moduleCode: editFormData.moduleCode
+      });
+
+      const isDuplicate = currentResData.some(res => {
+        if (res._id === editResource._id) return false;
+
+        const sameTitle = res.title && editFormData.title && res.title.toLowerCase().trim() === editFormData.title.toLowerCase().trim();
+        const sameLecture = res.lectureNo && editFormData.lectureNo && Number(res.lectureNo) === Number(editFormData.lectureNo);
+
+        return sameTitle || sameLecture;
+      });
+
+      if (isDuplicate) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Duplicate Detected',
+          text: 'A resource with the same title or lecture number already exists for this module.',
+          confirmButtonColor: '#2563eb'
+        });
+        return;
+      }
+
       await resourcesAPI.updateResource(editResource._id, editFormData);
       setResources(prev => prev.map(res => res._id === editResource._id ? { ...res, ...editFormData } : res));
       setEditResource(null);
+      Swal.fire({
+        icon: 'success',
+        title: 'Updated!',
+        text: 'Resource was updated successfully.',
+        timer: 1500,
+        showConfirmButton: false
+      });
     } catch (err) {
-      alert("Failed to update resource: " + err.message);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: "Failed to update resource: " + err.message,
+        confirmButtonColor: '#2563eb'
+      });
     }
   };
 
@@ -188,17 +260,26 @@ const DashboardProfile = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-        <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>TOTAL UPLOADS</p>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: '#2563eb' }}>{resources.length}</div>
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', margin: '0 0 12px 0', letterSpacing: '0.5px' }}>TOTAL UPLOADS</p>
+            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#2563eb' }}>{resources.length}</div>
+          </div>
+          <img src={tuplodeIcon} alt="Total Uploads" width="48" height="48" style={{ objectFit: 'contain' }} />
         </div>
-        <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>RESOURCES DOWNLOADED</p>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: '#16a34a' }}>{totalDownloads > 1000 ? (totalDownloads / 1000).toFixed(1) + 'k' : totalDownloads}</div>
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', margin: '0 0 12px 0', letterSpacing: '0.5px' }}>RESOURCES DOWNLOADED</p>
+            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#16a34a' }}>{totalDownloads > 1000 ? (totalDownloads / 1000).toFixed(1) + 'k' : totalDownloads}</div>
+          </div>
+          <img src={rdownlodeIcon} alt="Resources Downloaded" width="48" height="48" style={{ objectFit: 'contain' }} />
         </div>
-        <div style={{ backgroundColor: '#f8fafc', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-          <p style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', margin: '0 0 8px 0', letterSpacing: '0.5px' }}>RESOURCE RATING</p>
-          <div style={{ fontSize: '2rem', fontWeight: 700, color: '#b45309' }}>{avgRating}{avgRating !== 'No Ratings' && '/5'}</div>
+        <div style={{ backgroundColor: '#ffffff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <p style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b', margin: '0 0 12px 0', letterSpacing: '0.5px' }}>RESOURCE RATING</p>
+            <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#d97706' }}>{avgRating}{avgRating !== 'No Ratings' && '/5'}</div>
+          </div>
+          <img src={ratingIcon} alt="Resource Rating" width="48" height="48" style={{ objectFit: 'contain' }} />
         </div>
       </div>
 
@@ -317,17 +398,29 @@ const DashboardProfile = () => {
 
             <div style={{ marginBottom: '1rem' }}>
               <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600', color: '#475569' }}>Module Code</label>
-              <input type="text" value={editFormData.moduleCode} onChange={e => setEditFormData({ ...editFormData, moduleCode: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} required />
+              <select value={editFormData.moduleCode} onChange={e => setEditFormData({ ...editFormData, moduleCode: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box', backgroundColor: '#fff', cursor: 'pointer' }} required>
+                <option value="">Select Module</option>
+                {modules.map(m => (
+                  <option key={m._id} value={m.moduleCode}>{m.moduleCode} - {m.moduleName}</option>
+                ))}
+              </select>
             </div>
 
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600', color: '#475569' }}>Year</label>
-                <input type="number" value={editFormData.year} onChange={e => setEditFormData({ ...editFormData, year: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} required />
+                <select value={editFormData.year} onChange={e => setEditFormData({ ...editFormData, year: Number(e.target.value) })} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box', backgroundColor: '#fff', cursor: 'pointer' }} required>
+                  <option value="">Select Year</option>
+                  {[1, 2, 3, 4].map(y => <option key={y} value={y}>Year {y}</option>)}
+                </select>
               </div>
               <div style={{ flex: 1 }}>
                 <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: '600', color: '#475569' }}>Semester</label>
-                <input type="number" value={editFormData.semester} onChange={e => setEditFormData({ ...editFormData, semester: e.target.value })} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} required />
+                <select value={editFormData.semester} onChange={e => setEditFormData({ ...editFormData, semester: Number(e.target.value) })} style={{ width: '100%', padding: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', boxSizing: 'border-box', backgroundColor: '#fff', cursor: 'pointer' }} required>
+                  <option value="">Select Sem</option>
+                  <option value="1">Semester 1</option>
+                  <option value="2">Semester 2</option>
+                </select>
               </div>
             </div>
 
