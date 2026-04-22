@@ -55,7 +55,6 @@ const getResourceIcon = (type) => {
 
 const DashboardResources = () => {
   const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const outletContext = useOutletContext();
@@ -78,12 +77,6 @@ const DashboardResources = () => {
   const [currentRating, setCurrentRating] = useState(0);
   const [submittingRating, setSubmittingRating] = useState(false);
   const [reportModal, setReportModal] = useState({ open: false, contentType: '', contentId: '', title: '' });
-
-  const [modSearch, setModSearch] = useState('');
-  const [modPage, setModPage] = useState(1);
-  const [modItems, setModItems] = useState([]);
-  const [modMeta, setModMeta] = useState({ page: 1, totalPages: 1, total: 0, limit: 4 });
-  const [modLoading, setModLoading] = useState(false);
 
   useEffect(() => {
     if (!user?.currentYear || !user?.currentSemester) return;
@@ -186,24 +179,6 @@ const DashboardResources = () => {
 
   useEffect(() => { fetchResources(); }, [fetchResources]);
 
-  const fetchModerationItems = useCallback(async () => {
-    if (!isAdmin) return;
-    setModLoading(true);
-    try {
-      const data = await moderationAPI.getItems({ page: modPage, limit: 4, search: modSearch });
-      setModItems(data.items || []);
-      setModMeta(data.pagination || { page: 1, totalPages: 1, total: 0, limit: 4 });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setModLoading(false);
-    }
-  }, [isAdmin, modPage, modSearch]);
-
-  useEffect(() => {
-    fetchModerationItems();
-  }, [fetchModerationItems]);
-
   const openReportModal = (contentType, contentId, title) => {
     setReportModal({ open: true, contentType, contentId, title });
   };
@@ -222,54 +197,7 @@ const DashboardResources = () => {
       });
       closeReportModal();
       await fetchResources();
-      if (isAdmin) await fetchModerationItems();
       alert('Report submitted successfully');
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleRestore = async (itemId) => {
-    try {
-      await moderationAPI.restoreItem(itemId);
-      await fetchModerationItems();
-      await fetchResources();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleDeleteContent = async (itemId) => {
-    if (!window.confirm('Delete this content permanently?')) return;
-    try {
-      await moderationAPI.deleteContent(itemId);
-      await fetchModerationItems();
-      await fetchResources();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleSuspend = async (submittedBy) => {
-    if (!submittedBy?._id) return;
-    const daysRaw = window.prompt('Suspend for how many days?', '3');
-    if (!daysRaw) return;
-    const reason = window.prompt('Suspension reason:', 'Content policy violation');
-    if (!reason) return;
-
-    try {
-      await moderationAPI.suspendUser(submittedBy._id, { days: Number(daysRaw), reason });
-      await fetchModerationItems();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-  const handleUnsuspend = async (submittedBy) => {
-    if (!submittedBy?._id) return;
-    try {
-      await moderationAPI.unsuspendUser(submittedBy._id);
-      await fetchModerationItems();
     } catch (err) {
       alert(err.message);
     }
@@ -456,139 +384,6 @@ const DashboardResources = () => {
           </div>
         ))}
       </div>
-
-      {isAdmin && (
-        <div className="moderation-dashboard-container">
-          {/* Content Moderation Queue */}
-          <div className="moderation-content">
-            <div className="moderation-header">
-              <h2 className="moderation-title">Content Moderation Queue</h2>
-              <div className="moderation-tabs">
-                <span className="moderation-tab-label">Show:</span>
-                <button className="moderation-tab active">All Reports</button>
-                <button className="moderation-tab">Archived</button>
-              </div>
-            </div>
-
-            {/* Table */}
-            <div className="moderation-table-container">
-              <table className="moderation-table">
-                <thead>
-                  <tr>
-                    <th>CONTENT TITLE</th>
-                    <th>SUBMITTED BY</th>
-                    <th>REPORT COUNT</th>
-                    <th>STATUS</th>
-                    <th>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!modLoading && modItems.map((item) => {
-                    const suspended = item.submittedBy?.suspendedUntil && new Date(item.submittedBy.suspendedUntil).getTime() > Date.now();
-                    const initials = (item.submittedBy?.username || 'U').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-
-                    return (
-                      <tr key={item._id}>
-                        <td>
-                          <div className="content-title-cell">
-                            <div className="content-title-main">{item.title}</div>
-                            <div className="content-title-meta">
-                              {item.contentType} / {item.moduleCode || 'N/A'} / {item.resourceType || 'Document'}
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="submitted-by-cell">
-                            <div className="user-avatar-small">{initials}</div>
-                            <span className="user-name">{item.submittedBy?.username || 'Unknown'}</span>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`report-count ${item.reportCount > 10 ? 'high' : item.reportCount > 0 ? 'medium' : 'low'}`}>
-                            {item.reportCount}
-                          </span>
-                        </td>
-                        <td>
-                          {item.status === 'auto_hidden' ? (
-                            <span className="status-badge auto-hidden">AUTO-HIDDEN</span>
-                          ) : item.status === 'flagged' ? (
-                            <span className="status-badge flagged">FLAGGED</span>
-                          ) : (
-                            <span className="status-badge normal">NORMAL</span>
-                          )}
-                        </td>
-                        <td>
-                          <div className="moderation-actions">
-                            <button className="mod-action-btn restore" onClick={() => handleRestore(item._id)} title="Restore">
-                              ↻
-                            </button>
-                            <button className="mod-action-btn delete" onClick={() => handleDeleteContent(item._id)} title="Delete">
-                              🗑
-                            </button>
-                            {!suspended && (
-                              <button className="mod-action-btn suspend" onClick={() => handleSuspend(item.submittedBy)} title="Suspend User">
-                                ⊘
-                              </button>
-                            )}
-                            {suspended && (
-                              <button className="mod-action-btn unsuspend" onClick={() => handleUnsuspend(item.submittedBy)} title="Unsuspend User">
-                                ✓
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {!modLoading && modItems.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="empty-state">
-                        No moderation records found.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="moderation-pagination">
-              <div className="pagination-info">
-                Showing {((modPage - 1) * modMeta.limit) + 1} of {modMeta.total} items
-              </div>
-              <div className="pagination-controls">
-                <button
-                  className="pagination-btn"
-                  disabled={modPage <= 1}
-                  onClick={() => setModPage((prev) => Math.max(1, prev - 1))}
-                >
-                  ‹
-                </button>
-                <button className={`pagination-btn ${modPage === 1 ? 'active' : ''}`} onClick={() => setModPage(1)}>
-                  1
-                </button>
-                {modMeta.totalPages > 1 && (
-                  <button className={`pagination-btn ${modPage === 2 ? 'active' : ''}`} onClick={() => setModPage(2)}>
-                    2
-                  </button>
-                )}
-                {modMeta.totalPages > 2 && (
-                  <button className={`pagination-btn ${modPage === 3 ? 'active' : ''}`} onClick={() => setModPage(3)}>
-                    3
-                  </button>
-                )}
-                <button
-                  className="pagination-btn"
-                  disabled={modPage >= modMeta.totalPages}
-                  onClick={() => setModPage((prev) => Math.min(modMeta.totalPages, prev + 1))}
-                >
-                  ›
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <ModerationReportModal
         open={reportModal.open}

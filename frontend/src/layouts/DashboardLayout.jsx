@@ -135,10 +135,10 @@ const DashboardLayout = () => {
       exact: true,
     },
     {
-      to: '/user-dashboard/resources',
+      to: '/user-dashboard/moderation',
       label: 'Moderation',
       icon: moderationIcon,
-      match: ['/user-dashboard/resources'],
+      match: ['/user-dashboard/moderation'],
     },
     {
       to: '/user-dashboard/live-class',
