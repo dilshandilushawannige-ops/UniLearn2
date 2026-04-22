@@ -12,6 +12,7 @@ import Dashboard from './pages/Dashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import DashboardHome from './pages/DashboardHome';
 import DashboardResources from './pages/DashboardResources';
+import DashboardModeration from './pages/DashboardModeration';
 import DashboardUpload from './pages/DashboardUpload';
 import DashboardStudyPlan from './pages/DashboardStudyPlan';
 import DashboardProfile from './pages/DashboardProfile';
@@ -49,6 +50,7 @@ const AppContent = () => {
         <Route path="/user-dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<DashboardHome />} />
           <Route path="resources" element={<DashboardResources />} />
+          <Route path="moderation" element={<DashboardModeration />} />
           <Route path="resources/:id" element={<ResourceDetails />} />
           <Route path="resources/:id/summary" element={<ResourceSummary />} />
           <Route path="upload" element={<DashboardUpload />} />
