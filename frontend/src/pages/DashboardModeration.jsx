@@ -154,11 +154,34 @@ const DashboardModeration = () => {
 
   const handleUnsuspend = async (submittedBy) => {
     if (!submittedBy?._id) return;
+
+    const result = await Swal.fire({
+      title: 'Unsuspend user?',
+      text: `${submittedBy?.username || 'This user'} will regain access immediately.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#2563eb',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, unsuspend',
+    });
+    if (!result.isConfirmed) return;
+
     try {
       await moderationAPI.unsuspendUser(submittedBy._id);
       await fetchModerationItems();
+      await Swal.fire({
+        title: 'User unsuspended',
+        text: `${submittedBy?.username || 'User'} unsuspended successfully.`,
+        icon: 'success',
+        timer: 1700,
+        showConfirmButton: false,
+      });
     } catch (err) {
-      alert(err.message);
+      Swal.fire({
+        title: 'Unsuspend failed',
+        text: err.message || 'Something went wrong while unsuspending user.',
+        icon: 'error',
+      });
     }
   };
 
